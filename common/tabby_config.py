@@ -60,39 +60,12 @@ class TabbyConfig(TabbyConfigModel):
     def _from_file(self, config_path: pathlib.Path):
         """loads config from a given file path"""
 
-        legacy = False
         cfg = {}
 
         # try loading from file
         try:
             with open(str(config_path.resolve()), "r", encoding="utf8") as config_file:
                 cfg = yaml.load(config_file)
-
-                # NOTE: Remove migration wrapper after a period of time
-                # load legacy config files
-
-                # Model config migration
-                model_cfg = unwrap(cfg.get("model"), {})
-
-                if model_cfg.get("draft"):
-                    legacy = True
-                    cfg["draft_model"] = model_cfg["draft"]
-
-                if model_cfg.get("lora"):
-                    legacy = True
-                    cfg["lora"] = model_cfg["lora"]
-
-                # Logging config migration
-                # This will catch the majority of legacy config files
-                logging_cfg = unwrap(cfg.get("logging"), {})
-                unmigrated_log_keys = [
-                    key for key in logging_cfg.keys() if not key.startswith("log_")
-                ]
-                if unmigrated_log_keys:
-                    legacy = True
-                    for key in unmigrated_log_keys:
-                        cfg["logging"][f"log_{key}"] = cfg["logging"][key]
-                        del cfg["logging"][key]
         except FileNotFoundError:
             logger.info(f"The '{config_path.name}' file cannot be found")
         except Exception as exc:
@@ -100,39 +73,6 @@ class TabbyConfig(TabbyConfigModel):
                 f"The YAML config from '{config_path.name}' couldn't load because of "
                 f"the following error:\n\n{exc}"
             )
-
-        if legacy:
-            logger.warning(
-                "Legacy config.yml file detected. Attempting auto-migration."
-            )
-
-            # Create a temporary base config model
-            cfg = filter_none_values(cfg)
-            new_cfg = TabbyConfigModel(**cfg)
-
-            try:
-                config_path.rename(f"{config_path}.bak")
-                generate_config_file(model=new_cfg, filename=config_path)
-                logger.info(
-                    "Auto-migration successful. "
-                    'The old configuration is stored in "config.yml.bak".'
-                )
-            except Exception as e:
-                logger.error(
-                    f"Auto-migration failed because of: {e}\n\n"
-                    "Reverted all changes.\n"
-                    "Either fix your config.yml and restart or\n"
-                    "Delete your old YAML file and create a new "
-                    'config by copying "config_sample.yml" to "config.yml".'
-                )
-
-                # Restore the old config
-                config_path.unlink(missing_ok=True)
-                pathlib.Path(f"{config_path}.bak").rename(config_path)
-
-                # Don't use the partially loaded config
-                logger.warning("Starting with no config loaded.")
-                return {}
 
         return unwrap(cfg, {})
 

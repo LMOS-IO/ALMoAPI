@@ -2,7 +2,6 @@
 
 import asyncio
 import json
-import socket
 import traceback
 from fastapi import Depends, HTTPException, Request
 from loguru import logger
