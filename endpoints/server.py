@@ -57,10 +57,7 @@ async def start_api(host: str, port: int):
     app = setup_app()
 
     uvicornConfig = uvicorn.Config(
-        app,
-        host=host,
-        port=port,
-        log_config=UVICORN_LOG_CONFIG
+        app, host=host, port=port, log_config=UVICORN_LOG_CONFIG
     )
     server = uvicorn.Server(uvicornConfig)
 
