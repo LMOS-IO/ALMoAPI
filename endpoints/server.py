@@ -7,8 +7,6 @@ from loguru import logger
 
 from common.logger import UVICORN_LOG_CONFIG
 from common.networking import get_global_depends
-from common.tabby_config import config
-from endpoints.Kobold import router as KoboldRouter
 from endpoints.OAI import router as OAIRouter
 from endpoints.core.router import router as CoreRouter
 
@@ -35,29 +33,7 @@ def setup_app(host: Optional[str] = None, port: Optional[int] = None):
         allow_headers=["*"],
     )
 
-    api_servers = config.network.api_servers
-    api_servers = (
-        api_servers
-        if api_servers
-        else [
-            "oai",
-        ]
-    )
-
-    # Map for API id to server router
-    router_mapping = {"oai": OAIRouter, "kobold": KoboldRouter}
-
-    # Include the OAI api by default
-    for server in api_servers:
-        selected_server = router_mapping.get(server.lower())
-
-        if selected_server:
-            app.include_router(selected_server.setup())
-
-            logger.info(f"Starting {selected_server.api_name} API")
-            for path, url in selected_server.urls.items():
-                formatted_url = url.format(host=host, port=port)
-                logger.info(f"{path}: {formatted_url}")
+    app.include_router(OAIRouter.setup())
 
     # Include core API request paths
     app.include_router(CoreRouter)
