@@ -1,5 +1,3 @@
-import asyncio
-from typing import Optional
 import uvicorn
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -11,7 +9,7 @@ from endpoints.OAI import router as OAIRouter
 from endpoints.core.router import router as CoreRouter
 
 
-def setup_app(host: Optional[str] = None, port: Optional[int] = None):
+def setup_app():
     """Includes the correct routers for startup"""
 
     app = FastAPI(
@@ -52,21 +50,18 @@ async def start_api(host: str, port: int):
     """Isolated function to start the API server"""
 
     # TODO: Move OAI API to a separate folder
-    logger.info(f"Developer documentation: http://{host}:{port}/redoc")
+    display_host = host if host != "0.0.0.0" else "localhost"
+    logger.info(f"Developer documentation: http://{display_host}:{port}/redoc")
 
     # Setup app
-    app = setup_app(host, port)
+    app = setup_app()
 
-    # Get the current event loop
-    loop = asyncio.get_running_loop()
-
-    config = uvicorn.Config(
+    uvicornConfig = uvicorn.Config(
         app,
         host=host,
         port=port,
-        log_config=UVICORN_LOG_CONFIG,
-        loop=loop,
+        log_config=UVICORN_LOG_CONFIG
     )
-    server = uvicorn.Server(config)
+    server = uvicorn.Server(uvicornConfig)
 
     await server.serve()
