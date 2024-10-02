@@ -78,7 +78,7 @@ def get_install_features(lib_name: str = None):
         # Exit if using AMD and Windows
         if platform.system() == "Windows":
             print(
-                "ERROR: TabbyAPI does not support AMD and Windows. "
+                "ERROR: ALMoAPI does not support AMD and Windows. "
                 "Please use Linux and ROCm 6.0. Exiting."
             )
             sys.exit(0)
@@ -172,7 +172,7 @@ if __name__ == "__main__":
         has_full_parser = True
     except ModuleNotFoundError:
         parser = argparse.ArgumentParser(
-            description="Abridged TabbyAPI start script parser.",
+            description="Abridged ALMoAPI start script parser.",
             epilog=(
                 "Some dependencies were not found to display the full argparser. "
                 "Run the script once to install/update them."
@@ -194,7 +194,7 @@ if __name__ == "__main__":
             first_run = False
     else:
         print(
-            "It looks like you're running TabbyAPI for the first time. "
+            "It looks like you're running ALMoAPI for the first time. "
             "Getting things ready..."
         )
 
@@ -238,7 +238,7 @@ if __name__ == "__main__":
 
         if args.update_deps:
             print(
-                f"Dependencies updated. Please run TabbyAPI with `start.{script_ext}`. "
+                f"Dependencies updated. Please run ALMoAPI with `start.{script_ext}`. "
                 "Exiting."
             )
             sys.exit(0)
@@ -260,7 +260,7 @@ if __name__ == "__main__":
                 "Successfully wrote your start script options to "
                 "`start_options.json`. \n"
                 "If something goes wrong, editing or deleting the file "
-                "will reinstall TabbyAPI as a first-time user."
+                "will reinstall ALMoAPI as a first-time user."
             )
 
     # Expand the parser if it's not fully created
@@ -278,7 +278,7 @@ if __name__ == "__main__":
         converted_args = convert_args_to_dict(args, parser)
 
         # Create a config if it doesn't exist
-        # This is not necessary to run TabbyAPI, but is new user proof
+        # This is not necessary to run ALMoAPI, but is new user proof
         config_path = (
             pathlib.Path(args.config) if args.config else pathlib.Path("config.yml")
         )
@@ -291,7 +291,7 @@ if __name__ == "__main__":
                 f"Created one at {str(config_path.resolve())}"
             )
 
-        print("Starting TabbyAPI...")
+        print("Starting ALMoAPI...")
         entrypoint(converted_args)
     except (ModuleNotFoundError, ImportError):
         traceback.print_exc()

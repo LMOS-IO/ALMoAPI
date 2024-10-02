@@ -29,7 +29,7 @@ def check_exllama_version():
     current_version = version.parse(package_version("exllamav2").split("+")[0])
 
     unsupported_message = (
-        f"ERROR: TabbyAPI requires ExLlamaV2 {required_version} "
+        f"ERROR: ALMoAPI requires ExLlamaV2 {required_version} "
         f"or greater. Your current version is {current_version}.\n" + install_message
     )
 

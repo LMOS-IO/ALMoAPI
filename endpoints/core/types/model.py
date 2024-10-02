@@ -32,7 +32,7 @@ class ModelCard(BaseModel):
     id: str = "test"
     object: str = "model"
     created: int = Field(default_factory=lambda: int(time()))
-    owned_by: str = "tabbyAPI"
+    owned_by: str = "ALMoAPI"
     logging: Optional[LoggingConfig] = None
     parameters: Optional[ModelCardParameters] = None
 

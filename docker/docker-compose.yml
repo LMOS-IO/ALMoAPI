@@ -1,13 +1,13 @@
 version: '3.8'
 services:
-  tabbyapi:
+  ALMoAPI:
     # Uncomment this to build a docker image from source
     #build:
     #  context: ..
     #  dockerfile: ./docker/Dockerfile
 
     # Comment this to build a docker image from source
-    image: ghcr.io/theroyallab/tabbyapi:latest
+    image: ghcr.io/ALMoAPI/ALMoAPI:latest
     ports:
       - "5000:5000"
     healthcheck:
@@ -16,7 +16,7 @@ services:
       timeout: 10s
       retries: 3
     environment:
-      - NAME=TabbyAPI
+      - NAME=ALMoAPI
       - NVIDIA_VISIBLE_DEVICES=all
     volumes:
       - ./models:/app/models                                # Change me

@@ -1,4 +1,4 @@
-"""The main tabbyAPI module. Contains the FastAPI server and endpoints."""
+"""The main ALMoAPI module. Contains the FastAPI server and endpoints."""
 
 import asyncio
 import os

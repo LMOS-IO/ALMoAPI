@@ -9,7 +9,7 @@ body:
     value: |
       ### Disclaimer:
       Github Issues are **only** for code related bugs.
-      If you do not understand how to startup or use TabbyAPI, please ask in the [Discord Server](https://discord.gg/sYQxnuD7Fj)
+      If you do not understand how to startup or use ALMoAPI, please read the readme file.
 
 - type: dropdown
   attributes:
@@ -94,4 +94,4 @@ body:
   attributes:
     value: |
       ## Thanks!
-      Well-formatted issues improve TabbyAPI and make the development process smoother.
+      Well-formatted issues improve ALMoAPI and make the development process smoother.

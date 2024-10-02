@@ -11,7 +11,7 @@ class LoraCard(BaseModel):
     id: str = "test"
     object: str = "lora"
     created: int = Field(default_factory=lambda: int(time()))
-    owned_by: str = "tabbyAPI"
+    owned_by: str = "ALMoAPI"
     scaling: Optional[float] = None
 
 
