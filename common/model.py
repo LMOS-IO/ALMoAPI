@@ -76,9 +76,7 @@ async def load_model_gen(
     # Create a new container
     draft = draft or DraftModelInstanceConfig()
 
-    container = await ExllamaV2Container.create(
-        model=model, draft=draft, quiet=False
-    )
+    container = await ExllamaV2Container.create(model=model, draft=draft, quiet=False)
 
     model_type = "draft" if container.draft_config else "model"
     load_status = container.load_gen(load_progress, skip_wait)

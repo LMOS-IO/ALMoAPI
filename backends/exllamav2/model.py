@@ -339,12 +339,9 @@ class ExllamaV2Container:
 
         # Set user-configured draft model values
         if draft.draft_model_name:
-
             self.draft_config.max_seq_len = self.config.max_seq_len
 
-            self.draft_config.scale_pos_emb = unwrap(
-                draft.draft_rope_scale, 1.0
-            )
+            self.draft_config.scale_pos_emb = unwrap(draft.draft_rope_scale, 1.0)
 
             # Set draft rope alpha. Follows same behavior as model rope alpha.
             draft_rope_alpha = unwrap(draft.draft_rope_alpha, "auto")

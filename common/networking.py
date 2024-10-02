@@ -90,19 +90,6 @@ async def run_with_request_disconnect(
         raise HTTPException(422, disconnect_message) from ex
 
 
-def is_port_in_use(port: int) -> bool:
-    """
-    Checks if a port is in use
-
-    From https://stackoverflow.com/questions/2470971/fast-way-to-test-if-a-port-is-in-use-using-python
-    """
-
-    test_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    test_socket.settimeout(1)
-    with test_socket:
-        return test_socket.connect_ex(("localhost", port)) == 0
-
-
 async def add_request_id(request: Request):
     """FastAPI depends to add a UUID to a request's state."""
 

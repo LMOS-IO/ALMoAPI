@@ -13,7 +13,6 @@ from common.args import convert_args_to_dict, init_argparser
 from common.auth import load_auth_keys
 from common.actions import branch_to_actions
 from common.logger import setup_logger
-from common.networking import is_port_in_use
 from common.signals import signal_handler
 from common.tabby_config import config
 from common.utils import cast_model
@@ -28,25 +27,6 @@ async def entrypoint_async():
 
     host = config.network.host
     port = config.network.port
-
-    # Check if the port is available and attempt to bind a fallback
-    if is_port_in_use(port):
-        fallback_port = port + 1
-
-        if is_port_in_use(fallback_port):
-            logger.error(
-                f"Ports {port} and {fallback_port} are in use by different services.\n"
-                "Please free up those ports or specify a different one.\n"
-                "Exiting."
-            )
-
-            return
-        else:
-            logger.warning(
-                f"Port {port} is currently in use. Switching to {fallback_port}."
-            )
-
-            port = fallback_port
 
     # Initialize auth keys
     await load_auth_keys()
