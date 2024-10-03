@@ -3,7 +3,7 @@ services:
   ALMoAPI:
     # Uncomment this to build a docker image from source
     #build:
-    #  context: ..
+    #  context: .
     #  dockerfile: ./docker/Dockerfile
 
     # Comment this to build a docker image from source

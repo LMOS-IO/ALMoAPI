@@ -48,11 +48,10 @@ jobs:
           npm install @redocly/cli -g
       - name: Export OpenAPI docs
         run: |
-          python main.py --export-openapi true --openapi-export-path "openapi.json"
+          python ./almoapi/main.py --export-openapi true --openapi-export-path "openapi.json"
       - name: Build and store Redocly site
         run: |
           mkdir static
-          mkdir static/kobold
           redocly build-docs openapi.json -o static/index.html
       - name: Setup Pages
         uses: actions/configure-pages@v5

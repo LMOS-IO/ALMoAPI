@@ -23,6 +23,10 @@ pip install .[amd]
 
 Some optional dependencies can be installed via `pip install .[extras]` (required for text embeddings)
 
+Run the API server with `python almoapi/main.py`
+
+if you want to generate a new config file run `python almoapi/main.py --export-config true --config-export-path "config.yml"`
+
 ## Features
 
 - OpenAI compatible API
