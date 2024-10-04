@@ -420,18 +420,10 @@ async def decode_tokens(data: TokenDecodeRequest) -> TokenDecodeResponse:
 async def key_permission(request: Request) -> AuthPermissionResponse:
     """
     Gets the access level/permission of a provided key in headers.
-
-    Priority:
-    - X-admin-key
-    - X-api-key
-    - Authorization
     """
-
-    print(request.headers)
 
     try:
         permission = await AuthManager.get_key_permission(request)
-        print(permission)
         return AuthPermissionResponse(permission=permission)
     except ValueError as exc:
         error_message = handle_request_error(str(exc)).error.message
