@@ -5,7 +5,7 @@ Functions for logging generation events.
 from loguru import logger
 from typing import Optional
 
-from common.tabby_config import config
+from config.config import config
 
 
 def broadcast_status():

@@ -11,7 +11,7 @@ from rich.progress import Progress
 from typing import List, Optional
 
 from common.logger import get_progress_bar
-from common.tabby_config import config
+from config.config import config
 from common.utils import unwrap
 
 

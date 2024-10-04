@@ -1,10 +1,10 @@
 """Argparser for overriding config values"""
 
 import argparse
-from typing import Optional
+from typing import Optional, Union, get_origin
 from pydantic import BaseModel
 
-from common.config_models import TabbyConfigModel
+from config.models import TabbyConfigModel
 from common.utils import is_list_type, unwrap, unwrap_optional_type
 
 
@@ -45,7 +45,9 @@ def init_argparser(
         )
 
         # Check if the field_type is a Pydantic model
-        if issubclass(field_type, BaseModel):
+        if get_origin(field_type) is Union:
+            pass  # TODO: handle this to allow command line auth
+        elif issubclass(field_type, BaseModel):
             for sub_field_name, sub_field_info in field_type.model_fields.items():
                 sub_field_name = sub_field_name.replace("_", "-")
                 sub_field_type = sub_field_info.annotation

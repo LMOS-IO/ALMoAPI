@@ -9,7 +9,7 @@ from pydantic import BaseModel
 from typing import Optional
 from uuid import uuid4
 
-from common.tabby_config import config
+from config.config import config
 
 
 class TabbyRequestErrorMessage(BaseModel):

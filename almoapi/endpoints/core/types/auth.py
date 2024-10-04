@@ -2,6 +2,10 @@
 
 from pydantic import BaseModel, Field
 
+from auth.types import AuthPermission
+
 
 class AuthPermissionResponse(BaseModel):
-    permission: str = Field(description="The permission level of the API key")
+    permission: AuthPermission = Field(
+        description="The permission level of the API key"
+    )

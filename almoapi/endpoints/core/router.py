@@ -4,12 +4,13 @@ from sys import maxsize
 from fastapi import APIRouter, Depends, HTTPException, Request, Response
 from sse_starlette import EventSourceResponse
 
+from auth import AuthManager, check_admin_key, check_api_key
+from auth.types import AuthPermission
 from common import model, sampling
-from common.auth import check_admin_key, check_api_key, get_key_permission
 from common.downloader import hf_repo_download
 from common.model import check_embeddings_container, check_model_container
 from common.networking import handle_request_error, run_with_request_disconnect
-from common.tabby_config import config
+from config.config import config
 from common.templating import PromptTemplate, get_all_templates
 from common.utils import unwrap
 from common.health import HealthManager
@@ -76,7 +77,7 @@ async def list_models(request: Request) -> ModelList:
     Requires an admin key to see all models.
     """
 
-    if get_key_permission(request) == "admin":
+    if await AuthManager.get_key_permission(request) == AuthPermission.ADMIN:
         models = get_model_list(
             config.model.model_dir, config.draft_model.draft_model_dir
         )
@@ -113,7 +114,7 @@ async def list_draft_models(request: Request) -> ModelList:
     Requires an admin key to see all draft models.
     """
 
-    if get_key_permission(request) == "admin":
+    if await AuthManager.get_key_permission(request) == AuthPermission.ADMIN:
         draft_model_dir = config.draft_model.draft_model_dir
         draft_model_path = pathlib.Path(draft_model_dir)
 
@@ -202,7 +203,7 @@ async def list_all_loras(request: Request) -> LoraList:
     Requires an admin key to see all LoRAs.
     """
 
-    if get_key_permission(request) == "admin":
+    if await AuthManager.get_key_permission(request) == AuthPermission.ADMIN:
         lora_path = pathlib.Path(config.lora.lora_dir)
         loras = get_lora_list(lora_path.resolve())
     else:
@@ -283,7 +284,7 @@ async def list_embedding_models(request: Request) -> ModelList:
     Requires an admin key to see all embedding models.
     """
 
-    if get_key_permission(request) == "admin":
+    if await AuthManager.get_key_permission(request) == AuthPermission.ADMIN:
         embedding_model_dir = config.embeddings.embedding_model_dir
         embedding_model_path = pathlib.Path(embedding_model_dir)
 
@@ -419,15 +420,10 @@ async def decode_tokens(data: TokenDecodeRequest) -> TokenDecodeResponse:
 async def key_permission(request: Request) -> AuthPermissionResponse:
     """
     Gets the access level/permission of a provided key in headers.
-
-    Priority:
-    - X-admin-key
-    - X-api-key
-    - Authorization
     """
 
     try:
-        permission = get_key_permission(request)
+        permission = await AuthManager.get_key_permission(request)
         return AuthPermissionResponse(permission=permission)
     except ValueError as exc:
         error_message = handle_request_error(str(exc)).error.message
@@ -447,7 +443,7 @@ async def list_templates(request: Request) -> TemplateList:
     """
 
     template_strings = []
-    if get_key_permission(request) == "admin":
+    if await AuthManager.get_key_permission(request) == AuthPermission.ADMIN:
         templates = get_all_templates()
         template_strings = [template.stem for template in templates]
     else:
@@ -514,7 +510,7 @@ async def list_sampler_overrides(request: Request) -> SamplerOverrideListRespons
     Requires an admin key to see all override presets.
     """
 
-    if get_key_permission(request) == "admin":
+    if await AuthManager.get_key_permission(request) == AuthPermission.ADMIN:
         presets = sampling.get_all_presets()
     else:
         presets = []

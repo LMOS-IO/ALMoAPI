@@ -14,7 +14,7 @@ from backends.exllamav2.types import DraftModelInstanceConfig, ModelInstanceConf
 from common.logger import get_loading_progress_bar
 from common.networking import handle_request_error
 from common.optional_dependencies import dependencies
-from common.tabby_config import config
+from config.config import config
 
 if dependencies.exllamav2:
     from backends.exllamav2.model import ExllamaV2Container

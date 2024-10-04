@@ -98,14 +98,12 @@ UVICORN_LOG_CONFIG = {
 }
 
 
-def setup_logger():
-    """Bootstrap the logger."""
+# Setup logger
+logger.remove()
 
-    logger.remove()
-
-    logger.add(
-        RICH_CONSOLE.print,
-        level=LOG_LEVEL,
-        format=_log_formatter,
-        colorize=True,
-    )
+logger.add(
+    RICH_CONSOLE.print,
+    level=LOG_LEVEL,
+    format=_log_formatter,
+    colorize=True,
+)

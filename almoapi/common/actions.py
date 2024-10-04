@@ -1,7 +1,7 @@
 import json
 from loguru import logger
 
-from common.tabby_config import config, generate_config_file
+from config.config import config, generate_config_file
 from endpoints.server import export_openapi
 
 

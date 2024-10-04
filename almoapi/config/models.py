@@ -9,21 +9,9 @@ from pydantic import (
 from typing import List, Literal, Optional
 from pathlib import Path
 
+from config.auth import AuthProviderConfig
 from backends.exllamav2.types import DraftModelInstanceConfig, ModelInstanceConfig
-
-
-class Metadata(BaseModel):
-    """metadata model for config options"""
-
-    include_in_config: bool = Field(
-        True, description="if the model is included by the config file generator"
-    )
-
-
-class BaseConfigModel(BaseModel):
-    """Base model for config models with added metadata"""
-
-    _metadata: Metadata = PrivateAttr(Metadata())
+from config.generics import BaseConfigModel, Metadata
 
 
 class ConfigOverrideConfig(BaseConfigModel):
@@ -150,7 +138,6 @@ class ModelConfig(BaseConfigModel, ModelInstanceConfig):
         ),
     )
 
-    _metadata: Metadata = PrivateAttr(Metadata())
     model_config = ConfigDict(protected_namespaces=())
 
 
@@ -280,5 +267,8 @@ class TabbyConfigModel(BaseModel):
     sampling: SamplingConfig = Field(default_factory=SamplingConfig)
     developer: DeveloperConfig = Field(default_factory=DeveloperConfig)
     actions: UtilityActions = Field(default_factory=UtilityActions)
+    auth: AuthProviderConfig = Field(
+        default_factory=AuthProviderConfig, description="The auth provider config"
+    )
 
     model_config = ConfigDict(validate_assignment=True, protected_namespaces=())

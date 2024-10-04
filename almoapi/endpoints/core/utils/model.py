@@ -5,7 +5,7 @@ from typing import Optional
 from backends.exllamav2.types import DraftModelInstanceConfig, ModelInstanceConfig
 from common import model
 from common.networking import get_generator_error, handle_request_disconnect
-from common.tabby_config import config
+from config.config import config
 from common.utils import cast_model, unwrap
 from common.model import ModelType
 from endpoints.core.types.model import (

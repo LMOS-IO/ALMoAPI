@@ -55,6 +55,10 @@ extras = [
     "infinity-emb",
     "sentence-transformers",
 ]
+redis = [
+    # Redis for auth
+    "redis",
+]
 dev = [
     "ruff >= 0.6.5"
 ]

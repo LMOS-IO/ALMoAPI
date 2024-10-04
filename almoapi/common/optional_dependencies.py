@@ -17,6 +17,7 @@ class DependenciesModel(BaseModel):
     outlines: bool
     infinity_emb: bool
     sentence_transformers: bool
+    redis: bool
 
     @computed_field
     @property
