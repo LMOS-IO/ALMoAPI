@@ -12,9 +12,10 @@ from typing import List, Union
 
 from loguru import logger
 
+from auth.types import AuthPermission
+from auth import AuthManager
 from backends.exllamav2.types import ModelInstanceConfig
 from common import model
-from auth import get_key_permission
 from common.networking import (
     get_generator_error,
     handle_request_disconnect,
@@ -121,7 +122,7 @@ async def load_inline_model(model_name: str, request: Request):
         return
 
     # Inline model loading isn't enabled or the user isn't an admin
-    if not get_key_permission(request) == "admin":
+    if not AuthManager.get_key_permission(request) == AuthPermission.ADMIN:
         error_message = handle_request_error(
             f"Unable to switch model to {model_name} because "
             + "an admin key isn't provided",

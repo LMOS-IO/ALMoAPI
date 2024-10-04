@@ -1,8 +1,14 @@
 from fastapi import Request
+from typing import Union
+
+from pydantic import SecretStr
 
 
-def get_key(request: Request):
-    test_key =request.headers.get("authorization")
+def get_test_key(request: Union[Request, str]) -> SecretStr:
+    if isinstance(request, Request):
+        test_key = request.headers.get("authorization")
+    else:
+        test_key = request
 
     if test_key is None:
         raise ValueError("The provided authentication key is missing.")
@@ -10,4 +16,4 @@ def get_key(request: Request):
     if test_key.lower().startswith("bearer"):
         test_key = test_key.split(" ")[1]
 
-    return test_key
+    return SecretStr(test_key)

@@ -1,5 +1,6 @@
 from pydantic import BaseModel, Field, PrivateAttr
 
+
 class Metadata(BaseModel):
     """metadata model for config options"""
 

@@ -8,22 +8,23 @@ class AuthInterface(ABC):
     """Interface for generic auth providers"""
 
     @abstractmethod
-    def get_permission(self, token: SecretStr) -> AuthPermission:
+    async def get_permission(self, token: SecretStr) -> AuthPermission:
         """Get the permission level of a token"""
         raise NotImplementedError
 
     @abstractmethod
-    def set_token(self, token: SecretStr, permission: AuthPermission) -> None:
+    async def set_token(self, token: SecretStr, permission: AuthPermission) -> None:
         """Set a token in the auth provider"""
         raise NotImplementedError
 
     @abstractmethod
-    def add_token(
+    async def add_token(
         self, permission: AuthPermission, expiration: Optional[int] = None
     ) -> SecretStr:
         """Add a token to the auth provider"""
         raise NotImplementedError
 
-    def authenticate(self, token: SecretStr, *roles: AuthPermission) -> bool:
+    async def authenticate(self, token: SecretStr, *roles: AuthPermission) -> bool:
         """Authenticate a token"""
-        return any(role == self.get_permission(token) for role in roles)
+        token_perms = await self.get_permission(token)
+        return any(role == token_perms for role in roles)

@@ -14,6 +14,7 @@ from config.models import BaseConfigModel, TabbyConfigModel
 from common.utils import merge_dicts, filter_none_values, unwrap
 
 yaml = YAML(typ=["rt", "safe"])
+yaml.representer.add_representer(pathlib.Path, pathlib.Path.as_posix)
 
 
 class TabbyConfig(TabbyConfigModel):
@@ -66,6 +67,7 @@ class TabbyConfig(TabbyConfigModel):
         try:
             with open(str(config_path.resolve()), "r", encoding="utf8") as config_file:
                 cfg = yaml.load(config_file)
+                logger.info(f"The '{config_path.name}' file was loaded")
         except FileNotFoundError:
             logger.info(f"The '{config_path.name}' file cannot be found")
         except Exception as exc:
@@ -157,10 +159,17 @@ def pydantic_model_to_yaml(model: BaseModel, indentation: int = 0) -> CommentedM
         value = getattr(model, field_name)
 
         if isinstance(value, BaseConfigModel):
-            # If the field is another Pydantic model
+            # If the field is another config model
 
             if not value._metadata.include_in_config:
                 continue
+
+            yaml_data[field_name] = pydantic_model_to_yaml(
+                value, indentation=indentation + 2
+            )
+            comment = getdoc(value)
+        elif isinstance(value, BaseModel):
+            # If the field is another Pydantic model
 
             yaml_data[field_name] = pydantic_model_to_yaml(
                 value, indentation=indentation + 2
@@ -205,6 +214,8 @@ def pydantic_model_to_yaml(model: BaseModel, indentation: int = 0) -> CommentedM
             yaml_data.yaml_set_comment_before_after_key(
                 field_name, before=comment, indent=indentation
             )
+        else:
+            comment = "\n"
 
         # Increment the iteration counter
         iteration += 1

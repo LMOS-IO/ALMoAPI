@@ -8,11 +8,10 @@ import signal
 from loguru import logger
 from typing import Optional
 
+from auth import AuthManager
 from common import gen_logging, sampling, model
 from common.args import convert_args_to_dict, init_argparser
-from auth import load_auth_keys
 from common.actions import branch_to_actions
-from common.logger import setup_logger
 from common.signals import signal_handler
 from config.config import config
 from common.utils import cast_model
@@ -27,9 +26,6 @@ async def entrypoint_async():
 
     host = config.network.host
     port = config.network.port
-
-    # Initialize auth keys
-    await load_auth_keys()
 
     gen_logging.broadcast_status()
 
@@ -76,8 +72,6 @@ async def entrypoint_async():
 
 
 def entrypoint(arguments: Optional[dict] = None):
-    setup_logger()
-
     # Set up signal aborting
     signal.signal(signal.SIGINT, signal_handler)
     signal.signal(signal.SIGTERM, signal_handler)
@@ -88,8 +82,10 @@ def entrypoint(arguments: Optional[dict] = None):
         arguments = convert_args_to_dict(parser.parse_args(), parser)
 
     # load config
-    print(type(config))
     config.load(arguments)
+
+    # setup auth
+    AuthManager.setup()
 
     # branch to default paths if required
     if branch_to_actions():
@@ -113,9 +109,9 @@ def entrypoint(arguments: Optional[dict] = None):
     # Use Uvloop/Winloop
     if config.developer.uvloop:
         if platform.system() == "Windows":
-            from winloop import install # type: ignore
+            from winloop import install  # type: ignore
         else:
-            from uvloop import install # type: ignore
+            from uvloop import install  # type: ignore
 
         # Set loop event policy
         install()

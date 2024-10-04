@@ -9,9 +9,10 @@ from pydantic import (
 from typing import List, Literal, Optional
 from pathlib import Path
 
-from config.auth import AuthProviderConfig, SimpleAuthProviderConfig
+from config.auth import AuthProviderConfig
 from backends.exllamav2.types import DraftModelInstanceConfig, ModelInstanceConfig
 from config.generics import BaseConfigModel, Metadata
+
 
 class ConfigOverrideConfig(BaseConfigModel):
     """Model for overriding a provided config file."""
@@ -177,6 +178,7 @@ class LoraConfig(BaseConfigModel):
         ),
     )
 
+
 class EmbeddingsConfig(BaseConfigModel):
     """
     Options for embedding models and loading.
@@ -266,8 +268,7 @@ class TabbyConfigModel(BaseModel):
     developer: DeveloperConfig = Field(default_factory=DeveloperConfig)
     actions: UtilityActions = Field(default_factory=UtilityActions)
     auth: AuthProviderConfig = Field(
-        default_factory=SimpleAuthProviderConfig,
-        description="The auth provider config"
+        default_factory=AuthProviderConfig, description="The auth provider config"
     )
 
     model_config = ConfigDict(validate_assignment=True, protected_namespaces=())
