@@ -9,6 +9,7 @@ from pydantic import (
 from typing import List, Literal, Optional
 from pathlib import Path
 
+from auth.types import AuthPermission
 from config.auth import AuthProviderConfig
 from backends.exllamav2.types import DraftModelInstanceConfig, ModelInstanceConfig
 from config.generics import BaseConfigModel, Metadata
@@ -37,6 +38,15 @@ class UtilityActions(BaseConfigModel):
     export_openapi: bool = Field(False, description="export openapi schema files")
     openapi_export_path: Path = Field(
         "openapi.json", description="path to export openapi schema to"
+    )
+
+    # Add API key options
+    add_api_key: bool = Field(False, description="add an API key to the config")
+    key_permission: str = Field(
+        AuthPermission.api.value, description="permission level for the API key"
+    )
+    key_expiration: Optional[int] = Field(
+        None, description="expiration time for the API key"
     )
 
     _metadata: Metadata = PrivateAttr(Metadata(include_in_config=False))

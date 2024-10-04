@@ -25,14 +25,14 @@ class TabbyConfig(TabbyConfigModel):
     def load(self, arguments: Optional[dict] = None):
         """Synchronously loads the global application config"""
 
-        # config is applied in order of items in the list
         arguments_dict = unwrap(arguments, {})
-        configs = [self._from_environment(), self._from_args(arguments_dict)]
 
-        # If actions aren't present, also look from the file
-        # TODO: Change logic if file loading requires actions in the future
-        if not arguments_dict.get("actions"):
-            configs.insert(0, self._from_file(pathlib.Path("config.yml")))
+        # config is applied in order of items in the list
+        configs = [
+            self._from_file(pathlib.Path("config.yml")),
+            self._from_environment(),
+            self._from_args(arguments_dict),
+        ]
 
         # Remove None (aka unset) values from the configs and merge them together
         # This should be less expensive than pruning the entire merged dictionary
@@ -105,7 +105,7 @@ class TabbyConfig(TabbyConfigModel):
             for sub_field_name in getattr(
                 TabbyConfigModel(), field_name
             ).model_fields.keys():
-                setting = getenv(f"TABBY_{field_name}_{sub_field_name}".upper(), None)
+                setting = getenv(f"ALMOAPI_{field_name}_{sub_field_name}".upper(), None)
                 if setting is not None:
                     section_config[sub_field_name] = setting
 

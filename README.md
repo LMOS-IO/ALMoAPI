@@ -11,6 +11,8 @@ Although this fork is still relatively new, we do not aim to maintain the abilit
 
 ## Getting Started
 
+### initial install
+
 The recommended installation method is to use docker-compose.
 
 If you do not want to use docker, you can install ALMoAPI manually. Please create a virtual environment, and then install the dependencies using pip. Use any of:
@@ -21,11 +23,17 @@ pip install .[cu118]
 pip install .[amd]
 ```
 
-Some optional dependencies can be installed via `pip install .[extras]` (required for text embeddings)
+Optional: Some dependencies can be installed via `pip install .[extras]` (required for text embeddings) and `pip install .[redis]` (required for redis auth provider) Optional
+
+### setup
+
+Generate a new config file run `python almoapi/main.py --export-config true --config-export-path "config.yml"`
+
+Enable an auth provider of your choice in the config file (defaults to simple)
+
+Add a new API key with `python almoapi/main.py --add-api-key true --key-permission admin`
 
 Run the API server with `python almoapi/main.py`
-
-if you want to generate a new config file run `python almoapi/main.py --export-config true --config-export-path "config.yml"`
 
 ## Features
 

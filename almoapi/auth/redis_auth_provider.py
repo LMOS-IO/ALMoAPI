@@ -40,6 +40,7 @@ class RedisAuthProvider(AuthInterface):
             }
         )
 
+        
         self.Redis = redis.Redis(**redis_args, decode_responses=True)
 
     async def get_permission(self, token: SecretStr) -> AuthPermission:
@@ -47,9 +48,13 @@ class RedisAuthProvider(AuthInterface):
         if not token.get_secret_value():
             return AuthPermission.unauthenticated
 
-        redis_token = await self.Redis.get(
-            f"{config.auth.redis.prefix}key-{token.get_secret_value()}"
-        )
+        try:
+            redis_token = await self.Redis.get(
+                f"{config.auth.redis.prefix}key-{token.get_secret_value()}"
+            )
+        except Exception as e:
+            logger.error(f"Redis error: {e}")
+            exit(1)
 
         if not redis_token:
             return AuthPermission.unauthenticated
@@ -70,7 +75,11 @@ class RedisAuthProvider(AuthInterface):
                 "ex": expiration,
             }
         )
-        await self.Redis.set(**args)
+        try:
+            await self.Redis.set(**args)
+        except Exception as e:
+            logger.error(f"Redis error: {e}")
+            exit(1)
 
     async def add_token(
         self, permission: AuthPermission, expiration: Optional[int] = None
