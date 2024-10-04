@@ -1,13 +1,13 @@
 version: '3.8'
 services:
-  ALMoAPI:
+  almoapi:
     # Uncomment this to build a docker image from source
-    #build:
-    #  context: .
-    #  dockerfile: ./docker/Dockerfile
+    build:
+      context: .
+      dockerfile: Dockerfile
 
     # Comment this to build a docker image from source
-    image: ghcr.io/ALMoAPI/ALMoAPI:latest
+    #image: ghcr.io/almoapi/almoapi:latest
     ports:
       - "5000:5000"
     healthcheck:
@@ -19,9 +19,10 @@ services:
       - NAME=ALMoAPI
       - NVIDIA_VISIBLE_DEVICES=all
     volumes:
-      - ./models:/app/models                                # Change me
-      # - /path/to/config.yml:/app/config.yml               # Change me
-      # - /path/to/api_tokens.yml:/app/api_tokens.yml       # Change me
+      - ./models:/app/models  # Adjust this path if needed
+      - ./loras:/app/loras  # Adjust this path if needed
+      - ./config.yml:/app/config.yml  # change if necessary
+      - ./api_tokens.yml:/app/api_tokens.yml  # change if necessary
     deploy:
       resources:
         reservations:

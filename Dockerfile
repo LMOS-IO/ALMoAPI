@@ -21,6 +21,8 @@ COPY pyproject.toml .
 
 # Install packages specified in pyproject.toml cu121
 RUN pip3 install --no-cache-dir .[cu121]
+RUN pip3 install --no-cache-dir .[extras]
+RUN pip3 install --no-cache-dir .[redis]
 
 RUN rm pyproject.toml
 
@@ -30,8 +32,7 @@ COPY almoapi .
 # Make port 5000 available to the world outside this container
 EXPOSE 5000
 
-# Set the entry point
-ENTRYPOINT ["python3"]
+ENV ALMOAPI_NETWORK_HOST=0.0.0.0
 
-# Run main.py when the container launches
-CMD ["main.py"]
+# Set the entry point
+ENTRYPOINT ["python3", "main.py"]
