@@ -10,11 +10,11 @@ from typing import Optional
 
 from common import gen_logging, sampling, model
 from common.args import convert_args_to_dict, init_argparser
-from common.auth import load_auth_keys
+from auth import load_auth_keys
 from common.actions import branch_to_actions
 from common.logger import setup_logger
 from common.signals import signal_handler
-from common.tabby_config import config
+from config.config import config
 from common.utils import cast_model
 from endpoints.server import start_api
 
@@ -88,6 +88,7 @@ def entrypoint(arguments: Optional[dict] = None):
         arguments = convert_args_to_dict(parser.parse_args(), parser)
 
     # load config
+    print(type(config))
     config.load(arguments)
 
     # branch to default paths if required
@@ -112,9 +113,9 @@ def entrypoint(arguments: Optional[dict] = None):
     # Use Uvloop/Winloop
     if config.developer.uvloop:
         if platform.system() == "Windows":
-            from winloop import install
+            from winloop import install # type: ignore
         else:
-            from uvloop import install
+            from uvloop import install # type: ignore
 
         # Set loop event policy
         install()

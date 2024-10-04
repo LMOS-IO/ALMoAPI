@@ -44,7 +44,7 @@ from backends.exllamav2.utils import (
     hardware_supports_flash_attn,
     supports_paged_attn,
 )
-from common.tabby_config import config
+from config.config import config
 from common.concurrency import iterate_in_threadpool
 from common.gen_logging import (
     log_generation_params,

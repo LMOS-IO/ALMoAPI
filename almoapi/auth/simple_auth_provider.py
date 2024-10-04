@@ -1,14 +1,15 @@
 import secrets
 from typing import Optional
+from pydantic import SecretStr
+
 from auth.interface import AuthInterface
 from auth.types import AuthPermission
-from pydantic import SecretStr
 
 
 class SimpleAuthProvider(AuthInterface):
     """Simple auth provider"""
 
-    def __init__(self):
+    def __init__(self, config):
         self.tokens = {}
 
     def get_permission(self, token: SecretStr) -> AuthPermission:

@@ -10,7 +10,7 @@ from ruamel.yaml import YAML
 from ruamel.yaml.comments import CommentedMap, CommentedSeq
 from ruamel.yaml.scalarstring import PreservedScalarString
 
-from common.config_models import BaseConfigModel, TabbyConfigModel
+from config.models import BaseConfigModel, TabbyConfigModel
 from common.utils import merge_dicts, filter_none_values, unwrap
 
 yaml = YAML(typ=["rt", "safe"])

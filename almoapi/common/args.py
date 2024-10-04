@@ -4,7 +4,7 @@ import argparse
 from typing import Optional
 from pydantic import BaseModel
 
-from common.config_models import TabbyConfigModel
+from config.models import TabbyConfigModel
 from common.utils import is_list_type, unwrap, unwrap_optional_type
 
 

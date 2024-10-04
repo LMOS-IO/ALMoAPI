@@ -4,10 +4,10 @@ from sse_starlette import EventSourceResponse
 from sys import maxsize
 
 from common import model
-from common.auth import check_api_key
+from auth import check_api_key
 from common.model import check_embeddings_container, check_model_container
 from common.networking import handle_request_error, run_with_request_disconnect
-from common.tabby_config import config
+from config.config import config
 from endpoints.OAI.types.completion import CompletionRequest, CompletionResponse
 from endpoints.OAI.types.chat_completion import (
     ChatCompletionRequest,

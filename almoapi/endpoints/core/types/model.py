@@ -2,11 +2,11 @@
 
 from pydantic import BaseModel, Field, ConfigDict, model_validator
 from time import time
-from typing import List, Optional
+from typing import List, Literal, Optional
 
 from backends.exllamav2.types import DraftModelInstanceConfig, ModelInstanceConfig
-from common.config_models import LoggingConfig
-from common.tabby_config import config
+from config.models import LoggingConfig
+from config.config import config
 
 
 class ModelCardParameters(BaseModel):
@@ -75,7 +75,10 @@ class EmbeddingModelLoadRequest(BaseModel):
     name: str
 
     # Set default from the config
-    embeddings_device: Optional[str] = Field(config.embeddings.embeddings_device)
+    embeddings_device: Optional[Literal["cpu", "auto", "cuda"]] = Field(
+        config.embeddings.embeddings_device,
+        description="Device to load embedding models on.",
+    )
 
 
 class ModelLoadResponse(BaseModel):

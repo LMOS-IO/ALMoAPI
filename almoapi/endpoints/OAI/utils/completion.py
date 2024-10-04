@@ -14,14 +14,14 @@ from loguru import logger
 
 from backends.exllamav2.types import ModelInstanceConfig
 from common import model
-from common.auth import get_key_permission
+from auth import get_key_permission
 from common.networking import (
     get_generator_error,
     handle_request_disconnect,
     handle_request_error,
     request_disconnect_loop,
 )
-from common.tabby_config import config
+from config.config import config
 from common.utils import unwrap
 from endpoints.OAI.types.completion import (
     CompletionRequest,
