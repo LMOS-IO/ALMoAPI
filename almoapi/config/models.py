@@ -140,13 +140,6 @@ class ModelConfig(BaseConfigModel, ModelInstanceConfig):
             "Example: ['max_seq_len', 'cache_mode']."
         ),
     )
-    fasttensors: bool = Field(
-        False,
-        description=(
-            "Enables fasttensors to possibly increase model loading speeds "
-            "(default: False)."
-        ),
-    )
 
     model_config = ConfigDict(protected_namespaces=())
 

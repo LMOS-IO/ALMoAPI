@@ -243,9 +243,6 @@ class ExllamaV2Container:
         else:
             self.config.scale_alpha_value = rope_alpha
 
-        # Enable fasttensors loading if present
-        self.config.fasttensors = config.model.fasttensors
-
         # Set max batch size to the config override
         self.max_batch_size = model.max_batch_size
 

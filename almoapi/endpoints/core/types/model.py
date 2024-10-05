@@ -54,8 +54,8 @@ class ModelLoadRequest(ModelInstanceConfig):
     )
     fasttensors: Optional[bool] = Field(
         None,
-        description="ignored, set globally from config.yml",
-        deprecated="Use model config instead",
+        description="deprecated inside of exllamav2",
+        deprecated="deprecated inside of exllamav2",
     )
 
     # Non-config arguments
