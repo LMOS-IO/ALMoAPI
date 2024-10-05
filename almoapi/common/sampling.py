@@ -12,6 +12,7 @@ from pydantic import (
     BaseModel,
     ConfigDict,
     Field,
+    computed_field,
     field_validator,
     model_validator,
 )
@@ -194,7 +195,11 @@ class BaseSamplerRequest(BaseModel):
         default_factory=lambda: get_default_sampler_value("dry_sequence_breakers", [])
     )
 
-    mirostat: Optional[bool] = False
+    @computed_field
+    @property
+    def mirostat(self) -> bool:
+        """Mirostat is enabled if mirostat_mode == 2."""
+        return self.mirostat_mode == 2
 
     mirostat_mode: Optional[int] = Field(
         default_factory=lambda: get_default_sampler_value("mirostat_mode", 0)
@@ -325,11 +330,6 @@ class BaseSamplerRequest(BaseModel):
             return json.loads(v) if isinstance(v, str) else v
         except Exception:
             return []  # Return empty list if parsing fails
-
-    @field_validator("mirostat", mode="before")
-    def convert_mirostat(cls, v, values):
-        """Mirostat is enabled if mirostat_mode == 2."""
-        return values.get("mirostat_mode") == 2
 
 
 class SamplerOverridesContainer(BaseModel):

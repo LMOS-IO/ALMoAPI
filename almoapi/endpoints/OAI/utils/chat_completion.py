@@ -10,6 +10,7 @@ from fastapi import HTTPException, Request
 from jinja2 import TemplateError
 from loguru import logger
 
+from endpoints.OAI.types.temp_models import TempModelForGenerator
 from common import model
 from common.networking import (
     get_generator_error,
@@ -17,7 +18,7 @@ from common.networking import (
     handle_request_error,
     request_disconnect_loop,
 )
-from common.utils import unwrap
+from common.utils import cast_model, unwrap
 from endpoints.OAI.types.chat_completion import (
     ChatCompletionLogprobs,
     ChatCompletionLogprob,
@@ -300,7 +301,7 @@ async def stream_generate_chat_completion(
                     prompt,
                     request.state.id,
                     abort_event,
-                    **task_gen_params.model_dump(),
+                    **cast_model(task_gen_params, TempModelForGenerator).model_dump(),
                 )
             )
 
@@ -381,7 +382,9 @@ async def generate_chat_completion(
             gen_tasks.append(
                 asyncio.create_task(
                     model.container.generate(
-                        prompt, request.state.id, **data.model_dump()
+                        prompt,
+                        request.state.id,
+                        **cast_model(data, TempModelForGenerator).model_dump(),
                     )
                 )
             )
@@ -438,7 +441,9 @@ async def generate_tool_calls(
             gen_tasks.append(
                 asyncio.create_task(
                     model.container.generate(
-                        pre_tool_prompt, request.state.id, **gen_params
+                        pre_tool_prompt,
+                        request.state.id,
+                        **cast_model(gen_params, TempModelForGenerator).model_dump(),
                     )
                 )
             )
