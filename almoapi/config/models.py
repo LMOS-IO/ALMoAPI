@@ -46,7 +46,7 @@ class UtilityActions(BaseConfigModel):
         AuthPermission.api.value, description="permission level for the API key"
     )
     key_expiration: Optional[int] = Field(
-        None, description="the life of an API key in seconds"
+        None, description="the life of an API key in seconds, only used in redis"
     )
 
     _metadata: Metadata = PrivateAttr(Metadata(include_in_config=False))
@@ -215,20 +215,6 @@ class EmbeddingsConfig(BaseConfigModel):
     )
 
 
-class SamplingConfig(BaseConfigModel):
-    """Options for Sampling"""
-
-    override_preset: Optional[str] = Field(
-        None,
-        description=(
-            "Select a sampler override preset (default: None).\n"
-            "Find this in the sampler-overrides folder.\n"
-            "This overrides default fallbacks for sampler values "
-            "that are passed to the API."
-        ),
-    )
-
-
 class DeveloperConfig(BaseConfigModel):
     """Options for development and experimentation"""
 
@@ -274,7 +260,6 @@ class TabbyConfigModel(BaseModel):
     draft_model: DraftModelConfig = Field(default_factory=DraftModelConfig)
     lora: LoraConfig = Field(default_factory=LoraConfig)
     embeddings: EmbeddingsConfig = Field(default_factory=EmbeddingsConfig)
-    sampling: SamplingConfig = Field(default_factory=SamplingConfig)
     developer: DeveloperConfig = Field(default_factory=DeveloperConfig)
     actions: UtilityActions = Field(default_factory=UtilityActions)
     auth: AuthProviderConfig = Field(

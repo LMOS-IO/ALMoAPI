@@ -15,6 +15,7 @@ User facing differences:
 - Optional Redis backed auth provider
 - First class docker support
 - No KoboldAI support (this will be reimplemented using an external conversion layer)
+- No sampler Presets (this will be a per model setting instead)
 - (TODO) multi model support
 - (TODO) whisper API support
 - (TODO) ctranslate2 backend support

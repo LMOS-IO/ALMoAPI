@@ -6,7 +6,7 @@ from sse_starlette import EventSourceResponse
 
 from auth import AuthManager, check_admin_key, check_api_key
 from auth.types import AuthPermission
-from common import model, sampling
+from common import model
 from common.downloader import hf_repo_download
 from common.model import check_embeddings_container, check_model_container
 from common.networking import handle_request_error, run_with_request_disconnect
@@ -25,10 +25,6 @@ from endpoints.core.types.model import (
     ModelLoadResponse,
 )
 from endpoints.core.types.health import HealthCheckResponse
-from endpoints.core.types.sampler_overrides import (
-    SamplerOverrideListResponse,
-    SamplerOverrideSwitchRequest,
-)
 from endpoints.core.types.tags import Tags
 from endpoints.core.types.template import TemplateList, TemplateSwitchRequest
 from endpoints.core.types.token import (
@@ -490,72 +486,3 @@ async def unload_template():
     """Unloads the currently selected template"""
 
     model.container.prompt_template = None
-
-
-# Sampler override endpoints
-@router.get(
-    "/v1/sampling/overrides",
-    dependencies=[Depends(check_api_key)],
-    tags=[Tags.List],
-)
-@router.get(
-    "/v1/sampling/override/list",
-    dependencies=[Depends(check_api_key)],
-    tags=[Tags.List],
-)
-async def list_sampler_overrides(request: Request) -> SamplerOverrideListResponse:
-    """
-    List all currently applied sampler overrides.
-
-    Requires an admin key to see all override presets.
-    """
-
-    if await AuthManager.get_key_permission(request) == AuthPermission.ADMIN:
-        presets = sampling.get_all_presets()
-    else:
-        presets = []
-
-    return SamplerOverrideListResponse(
-        presets=presets, **sampling.overrides_container.model_dump()
-    )
-
-
-@router.post(
-    "/v1/sampling/override/switch",
-    dependencies=[Depends(check_admin_key)],
-    tags=[Tags.Admin],
-)
-async def switch_sampler_override(data: SamplerOverrideSwitchRequest):
-    """Switch the currently loaded override preset"""
-
-    if data.preset:
-        try:
-            await sampling.overrides_from_file(data.preset)
-        except FileNotFoundError as e:
-            error_message = handle_request_error(
-                f"Sampler override preset with name {data.preset} does not exist. "
-                + "Check the spelling?",
-                exc_info=False,
-            ).error.message
-
-            raise HTTPException(400, error_message) from e
-    elif data.overrides:
-        sampling.overrides_from_dict(data.overrides)
-    else:
-        error_message = handle_request_error(
-            "A sampler override preset or dictionary wasn't provided.",
-            exc_info=False,
-        ).error.message
-
-        raise HTTPException(400, error_message)
-
-
-@router.post(
-    "/v1/sampling/override/unload",
-    dependencies=[Depends(check_admin_key)],
-    tags=[Tags.Admin],
-)
-async def unload_sampler_override():
-    """Unloads the currently selected override preset"""
-
-    sampling.overrides_from_dict({})

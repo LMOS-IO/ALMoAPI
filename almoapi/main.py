@@ -9,7 +9,7 @@ from loguru import logger
 from typing import Optional
 
 from auth import AuthManager
-from common import gen_logging, sampling, model
+from common import gen_logging, model
 from common.args import convert_args_to_dict, init_argparser
 from common.actions import branch_to_actions
 from common.signals import signal_handler
@@ -28,14 +28,6 @@ async def entrypoint_async():
     port = config.network.port
 
     gen_logging.broadcast_status()
-
-    # Set sampler parameter overrides if provided
-    sampling_override_preset = config.sampling.override_preset
-    if sampling_override_preset:
-        try:
-            await sampling.overrides_from_file(sampling_override_preset)
-        except FileNotFoundError as e:
-            logger.warning(str(e))
 
     # If an initial model name is specified, create a container
     # and load the model
