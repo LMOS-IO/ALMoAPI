@@ -32,7 +32,7 @@ class CommonCompletionRequest(BaseSamplerRequest):
     # Generation info (remainder is in BaseSamplerRequest superclass)
     stream: Optional[bool] = False
     stream_options: Optional[ChatCompletionStreamOptions] = None
-    logprobs: Optional[int] = Field(default = 0)
+    logprobs: Optional[int] = Field(default=0)
     response_format: Optional[CompletionResponseFormat] = Field(
         default_factory=CompletionResponseFormat
     )
