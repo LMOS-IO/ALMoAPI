@@ -1,6 +1,5 @@
 """The model container class for ExLlamaV2 models."""
 
-import aiofiles
 import asyncio
 import gc
 import math
@@ -30,7 +29,6 @@ from itertools import zip_longest
 from loguru import logger
 from typing import List, Optional, Union
 
-from ruamel.yaml import YAML
 
 from backends.exllamav2.types import DraftModelInstanceConfig, ModelInstanceConfig
 from common.health import HealthManager
@@ -173,11 +171,6 @@ class ExllamaV2Container:
                 )
 
         # Apply a model's config overrides while respecting user settings
-
-        # FIXME: THIS IS BROKEN!!!
-        # kwargs do not exist now
-        # should be investigated after the models have pydantic stuff
-        # kwargs = await self.set_model_overrides(**kwargs)
 
         # MARK: User configuration
 
@@ -361,32 +354,6 @@ class ExllamaV2Container:
 
         # Return the created instance
         return self
-
-    async def set_model_overrides(self, **kwargs):
-        """Sets overrides from a model folder's config yaml."""
-
-        override_config_path = self.model_dir / "tabby_config.yml"
-
-        if not override_config_path.exists():
-            return kwargs
-
-        async with aiofiles.open(
-            override_config_path, "r", encoding="utf8"
-        ) as override_config_file:
-            contents = await override_config_file.read()
-
-            # Create a temporary YAML parser
-            yaml = YAML(typ="safe")
-            override_args = unwrap(yaml.load(contents), {})
-
-            # Merge draft overrides beforehand
-            draft_override_args = unwrap(override_args.get("draft"), {})
-            if self.draft_config and draft_override_args:
-                kwargs["draft"] = {**draft_override_args, **kwargs.get("draft")}
-
-            # Merge the override and model kwargs
-            merged_kwargs = {**override_args, **kwargs}
-            return merged_kwargs
 
     async def find_prompt_template(self, prompt_template_name, model_directory):
         """Tries to find a prompt template using various methods."""

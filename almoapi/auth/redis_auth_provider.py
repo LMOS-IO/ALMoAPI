@@ -41,7 +41,6 @@ class RedisAuthProvider(AuthInterface):
             }
         )
 
-        
         self.Redis = redis.Redis(**redis_args, decode_responses=True)
 
     async def get_permission(self, token: SecretStr) -> AuthPermission:
