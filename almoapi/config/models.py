@@ -46,7 +46,7 @@ class UtilityActions(BaseConfigModel):
         AuthPermission.api.value, description="permission level for the API key"
     )
     key_expiration: Optional[int] = Field(
-        None, description="expiration time for the API key"
+        None, description="the life of an API key in seconds"
     )
 
     _metadata: Metadata = PrivateAttr(Metadata(include_in_config=False))
