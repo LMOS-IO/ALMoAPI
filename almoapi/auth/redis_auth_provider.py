@@ -2,6 +2,7 @@ import secrets
 from typing import Optional
 from pydantic import SecretStr
 from loguru import logger
+from hashlib import sha512
 
 from auth.interface import AuthInterface
 from auth.types import AuthPermission
@@ -48,9 +49,10 @@ class RedisAuthProvider(AuthInterface):
         if not token.get_secret_value():
             return AuthPermission.unauthenticated
 
+        hashed = sha512(token.get_secret_value().encode()).hexdigest()
         try:
             redis_token = await self.Redis.get(
-                f"{config.auth.redis.prefix}key-{token.get_secret_value()}"
+                f"{config.auth.redis.prefix}key-{hashed}"
             )
         except Exception as e:
             logger.error(f"Redis error: {e}")
@@ -68,9 +70,10 @@ class RedisAuthProvider(AuthInterface):
         expiration: Optional[int] = None,
     ) -> None:
         """Set a token in the auth provider"""
+        hashed = sha512(token.get_secret_value().encode()).hexdigest()
         args = filter_none_values(
             {
-                "name": f"{config.auth.redis.prefix}key-{token.get_secret_value()}",
+                "name": f"{config.auth.redis.prefix}key-{hashed}",
                 "value": permission,
                 "ex": expiration,
             }
