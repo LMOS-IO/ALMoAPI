@@ -1,9 +1,9 @@
 """Common types for OAI."""
 
-from pydantic import BaseModel, Field, model_validator
+from pydantic import BaseModel, Field
 from typing import Optional
 
-from common.sampling import BaseSamplerRequest, get_default_sampler_value
+from samplers.sampling import BaseSamplerRequest
 
 
 class UsageStats(BaseModel):
@@ -32,13 +32,11 @@ class CommonCompletionRequest(BaseSamplerRequest):
     # Generation info (remainder is in BaseSamplerRequest superclass)
     stream: Optional[bool] = False
     stream_options: Optional[ChatCompletionStreamOptions] = None
-    logprobs: Optional[int] = Field(
-        default_factory=lambda: get_default_sampler_value("logprobs", 0)
-    )
+    logprobs: Optional[int] = Field(default=0)
     response_format: Optional[CompletionResponseFormat] = Field(
         default_factory=CompletionResponseFormat
     )
-    n: Optional[int] = Field(default_factory=lambda: get_default_sampler_value("n", 1))
+    n: Optional[int] = Field(default=1, ge=1)
 
     # Extra OAI request stuff
     best_of: Optional[int] = Field(
@@ -53,9 +51,3 @@ class CommonCompletionRequest(BaseSamplerRequest):
     user: Optional[str] = Field(
         description="Not parsed. Only used for OAI compliance.", default=None
     )
-
-    @model_validator(mode="after")
-    def validate_params(self):
-        if self.n < 1:
-            raise ValueError(f"n must be greater than or equal to 1. Got {self.n}")
-        return self
