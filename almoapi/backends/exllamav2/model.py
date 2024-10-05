@@ -911,33 +911,64 @@ class ExllamaV2Container:
 
         return joined_generation
 
-    def check_unsupported_settings(self, **kwargs):
-        """
-        Check and warn the user if a sampler is unsupported.
-
-        Meant for dev wheels!
-        """
-
-        if unwrap(kwargs.get("xtc_probability"), 0.0) > 0.0 and not hasattr(
-            ExLlamaV2Sampler.Settings, "xtc_probability"
-        ):
-            logger.warning(
-                "XTC is not supported by the currently " "installed ExLlamaV2 version."
-            )
-
-        return kwargs
-
     async def generate_gen(
         self,
         prompt: str,
         request_id: str,
         abort_event: Optional[asyncio.Event] = None,
-        **kwargs,
+        token_healing: Optional[bool] = False,
+        generate_window: Optional[int] = None,
+        temperature: Optional[float] = 1.0,
+        temperature_last: Optional[bool] = False,
+        smoothing_factor: Optional[float] = 0.0,
+        top_k: Optional[int] = 0,
+        top_p: Optional[float] = 1.0,
+        top_a: Optional[float] = 0.0,
+        min_p: Optional[float] = 0.0,
+        tfs: Optional[float] = 1.0,
+        typical: Optional[float] = 1.0,
+        mirostat: Optional[bool] = False,
+        skew: Optional[int] = 0,
+        xtc_probability: Optional[float] = 0.0,
+        xtc_threshold: Optional[float] = 0.1,
+        max_temp: Optional[float] = 1.0,
+        min_temp: Optional[float] = 1.0,
+        temp_exponent: Optional[float] = 1.0,
+        mirostat_tau: Optional[float] = 1.5,
+        mirostat_eta: Optional[float] = 0.1,
+        cfg_scale: Optional[float] = 1.0,
+        negative_prompt: Optional[str] = None,
+        repetition_penalty: Optional[float] = 1.0,
+        frequency_penalty: Optional[float] = 0.0,
+        presence_penalty: Optional[float] = 0.0,
+        penalty_range: Optional[int] = None,
+        repetition_decay: Optional[int] = None,
+        dry_multiplier: Optional[float] = 0.0,
+        dry_allowed_length: Optional[int] = 0,
+        dry_base: Optional[float] = 0.0,
+        dry_range: Optional[int] = None,
+        dry_sequence_breakers: Optional[List[str]] = None,
+        json_schema: Optional[dict] = None,
+        regex_pattern: Optional[str] = None,
+        grammar_string: Optional[str] = None,
+        banned_strings: Optional[List[str]] = None,
+        stop: Optional[List[Union[str, int]]] = None,
+        add_bos_token: Optional[bool] = True,
+        ban_eos_token: Optional[bool] = False,
+        logit_bias: Optional[dict] = None,
+        logprobs: Optional[int] = 0,
+        speculative_ngram: Optional[bool] = False,
+        max_tokens: Optional[int] = None,
+        min_tokens: Optional[int] = 0,
+        skip_special_tokens: Optional[bool] = False,
+        banned_tokens: Optional[List[int]] = None,
+        allowed_tokens: Optional[List[int]] = None,
+        stream: Optional[bool] = False,
     ):
         """
         Create generator function for prompt completion.
 
-        for kwargs, check common/sampling.py
+        Keyword arguments are used to set various generation parameters.
         """
 
         # Wait for load lock to be freed before processing
@@ -946,46 +977,36 @@ class ExllamaV2Container:
 
         prompts = [prompt]
 
-        token_healing = unwrap(kwargs.get("token_healing"), False)
-        generate_window = max(
-            unwrap(kwargs.get("generate_window"), 512), self.config.max_seq_len // 8
-        )
+        generate_window = max("generate_window", self.config.max_seq_len // 8)
 
         # Sampler settings
         gen_settings = ExLlamaV2Sampler.Settings()
 
-        # Check unsupported settings for dev wheels
-        kwargs = self.check_unsupported_settings(**kwargs)
-
         # Apply settings
-        gen_settings.temperature = unwrap(kwargs.get("temperature"), 1.0)
-        gen_settings.temperature_last = unwrap(kwargs.get("temperature_last"), False)
-        gen_settings.smoothing_factor = unwrap(kwargs.get("smoothing_factor"), 0.0)
-        gen_settings.top_k = unwrap(kwargs.get("top_k"), 0)
-        gen_settings.top_p = unwrap(kwargs.get("top_p"), 1.0)
-        gen_settings.top_a = unwrap(kwargs.get("top_a"), 0.0)
-        gen_settings.min_p = unwrap(kwargs.get("min_p"), 0.0)
-        gen_settings.tfs = unwrap(kwargs.get("tfs"), 1.0)
-        gen_settings.typical = unwrap(kwargs.get("typical"), 1.0)
-        gen_settings.mirostat = unwrap(kwargs.get("mirostat"), False)
-        gen_settings.skew = unwrap(kwargs.get("skew"), 0)
+        gen_settings.temperature = temperature
+        gen_settings.temperature_last = temperature_last
+        gen_settings.smoothing_factor = smoothing_factor
+        gen_settings.top_k = top_k
+        gen_settings.top_p = top_p
+        gen_settings.top_a = top_a
+        gen_settings.min_p = min_p
+        gen_settings.tfs = tfs
+        gen_settings.typical = typical
+        gen_settings.mirostat = mirostat
+        gen_settings.skew = skew
 
         # XTC
-        xtc_probability = unwrap(kwargs.get("xtc_probability"), 0.0)
         if xtc_probability > 0.0:
             gen_settings.xtc_probability = xtc_probability
 
             # 0.1 is the default for this value
-            gen_settings.xtc_threshold = unwrap(kwargs.get("xtc_threshold", 0.1))
+            gen_settings.xtc_threshold = xtc_threshold
 
         # DynaTemp settings
-        max_temp = unwrap(kwargs.get("max_temp"), 1.0)
-        min_temp = unwrap(kwargs.get("min_temp"), 1.0)
-
         if max_temp > min_temp:
             gen_settings.max_temp = max_temp
             gen_settings.min_temp = min_temp
-            gen_settings.temp_exponent = unwrap(kwargs.get("temp_exponent"), 1.0)
+            gen_settings.temp_exponent = temp_exponent
         else:
             # Force to default values
             gen_settings.max_temp = 1.0
@@ -1002,20 +1023,17 @@ class ExllamaV2Container:
             )
 
         # Default tau and eta fallbacks don't matter if mirostat is off
-        gen_settings.mirostat_tau = unwrap(kwargs.get("mirostat_tau"), 1.5)
-        gen_settings.mirostat_eta = unwrap(kwargs.get("mirostat_eta"), 0.1)
+        gen_settings.mirostat_tau = mirostat_tau
+        gen_settings.mirostat_eta = mirostat_eta
 
         # Set CFG scale and negative prompt
-        cfg_scale = unwrap(kwargs.get("cfg_scale"), 1.0)
         negative_prompt = None
         if cfg_scale not in [None, 1.0]:
             if self.paged:
                 gen_settings.cfg_scale = cfg_scale
 
                 # If the negative prompt is empty, use the BOS token
-                negative_prompt = unwrap(
-                    kwargs.get("negative_prompt"), self.tokenizer.bos_token
-                )
+                negative_prompt = unwrap(negative_prompt, self.tokenizer.bos_token)
 
                 prompts.append(negative_prompt)
             else:
@@ -1025,19 +1043,13 @@ class ExllamaV2Container:
                 )
 
         # Penalties
-        gen_settings.token_repetition_penalty = unwrap(
-            kwargs.get("repetition_penalty"), 1.0
-        )
-        gen_settings.token_frequency_penalty = unwrap(
-            kwargs.get("frequency_penalty"), 0.0
-        )
-        gen_settings.token_presence_penalty = unwrap(
-            kwargs.get("presence_penalty"), 0.0
-        )
+        gen_settings.token_repetition_penalty = repetition_penalty
+        gen_settings.token_frequency_penalty = frequency_penalty
+        gen_settings.token_presence_penalty = presence_penalty
 
         # Applies for all penalties despite being called token_repetition_range
         gen_settings.token_repetition_range = unwrap(
-            kwargs.get("penalty_range"), self.config.max_seq_len
+            penalty_range, self.config.max_seq_len
         )
 
         # Dynamically scale penalty range to output tokens
@@ -1057,30 +1069,23 @@ class ExllamaV2Container:
         else:
             fallback_decay = gen_settings.token_repetition_range
         gen_settings.token_repetition_decay = coalesce(
-            kwargs.get("repetition_decay"), fallback_decay, 0
+            repetition_decay, fallback_decay, 0
         )
-
-        # DRY options
-        dry_multiplier = unwrap(kwargs.get("dry_multiplier"), 0.0)
 
         # < 0 = disabled
         if dry_multiplier > 0:
             gen_settings.dry_multiplier = dry_multiplier
 
             # TODO: Maybe set the "sane" defaults instead?
-            gen_settings.dry_allowed_length = unwrap(
-                kwargs.get("dry_allowed_length"), 0
-            )
-            gen_settings.dry_base = unwrap(kwargs.get("dry_base"), 0.0)
+            gen_settings.dry_allowed_length = dry_allowed_length
+            gen_settings.dry_base = dry_base
 
             # Exl2 has dry_range as 0 for unlimited unlike -1 for penalty_range
             # Use max_seq_len as the fallback to stay consistent
-            gen_settings.dry_range = unwrap(
-                kwargs.get("dry_range"), self.config.max_seq_len
-            )
+            gen_settings.dry_range = unwrap(dry_range, self.config.max_seq_len)
 
             # Tokenize sequence breakers
-            dry_sequence_breakers_json = kwargs.get("dry_sequence_breakers")
+            dry_sequence_breakers_json = dry_sequence_breakers
             if dry_sequence_breakers_json:
                 gen_settings.dry_sequence_breakers = {
                     self.encode_tokens(s)[-1] for s in dry_sequence_breakers_json
@@ -1090,24 +1095,20 @@ class ExllamaV2Container:
         grammar_handler = ExLlamaV2Grammar()
 
         # Add JSON schema filter if it exists
-        json_schema = kwargs.get("json_schema")
         if json_schema:
             grammar_handler.add_json_schema_filter(
                 json_schema, self.model, self.tokenizer
             )
 
         # Add regex filter if it exists
-        regex_pattern = kwargs.get("regex_pattern")
         if regex_pattern:
             grammar_handler.add_regex_filter(regex_pattern, self.model, self.tokenizer)
 
         # Add EBNF filter if it exists
-        grammar_string = kwargs.get("grammar_string")
         if grammar_string:
             grammar_handler.add_ebnf_filter(grammar_string, self.model, self.tokenizer)
 
         # Set banned strings
-        banned_strings: List[str] = unwrap(kwargs.get("banned_strings"), [])
         if banned_strings and len(grammar_handler.filters) > 0:
             logger.warning(
                 "Disabling banned_strings because "
@@ -1116,18 +1117,13 @@ class ExllamaV2Container:
 
             banned_strings = []
 
-        stop_conditions: List[Union[str, int]] = unwrap(kwargs.get("stop"), [])
-        add_bos_token = unwrap(kwargs.get("add_bos_token"), True)
-        ban_eos_token = unwrap(kwargs.get("ban_eos_token"), False)
-        logit_bias = kwargs.get("logit_bias")
+        stop_conditions: List[Union[str, int]] = stop
 
         # Logprobs
-        request_logprobs = unwrap(kwargs.get("logprobs"), 0)
+        request_logprobs = logprobs
 
         # Speculative Ngram
-        self.generator.speculative_ngram = unwrap(
-            kwargs.get("speculative_ngram"), False
-        )
+        self.generator.speculative_ngram = speculative_ngram
 
         # Override sampler settings for temp = 0
         if gen_settings.temperature == 0:
@@ -1150,12 +1146,10 @@ class ExllamaV2Container:
         gen_settings_log_dict = deepcopy(vars(gen_settings))
 
         # Set banned tokens
-        banned_tokens = unwrap(kwargs.get("banned_tokens"), [])
         if banned_tokens:
             gen_settings.disallow_tokens(self.tokenizer, banned_tokens)
 
         # Set allowed tokens
-        allowed_tokens = unwrap(kwargs.get("allowed_tokens"), [])
         if allowed_tokens:
             gen_settings.allow_tokens(self.tokenizer, allowed_tokens)
 
@@ -1212,15 +1206,10 @@ class ExllamaV2Container:
 
         # Automatically set max_tokens to fill up the context
         # This should be an OK default, but may be changed in the future
-        max_tokens = unwrap(
-            kwargs.get("max_tokens"), self.config.max_seq_len - context_len
-        )
-
-        # Set min_tokens to generate while keeping EOS banned
-        min_tokens = unwrap(kwargs.get("min_tokens"), 0)
+        max_tokens = unwrap(max_tokens, self.config.max_seq_len - context_len)
 
         # This is an inverse of skip_special_tokens
-        decode_special_tokens = unwrap(not kwargs.get("skip_special_tokens"), False)
+        decode_special_tokens = not skip_special_tokens
 
         # Log prompt to console. Add the BOS token if specified
         log_prompt(
@@ -1360,7 +1349,7 @@ class ExllamaV2Container:
                 request_id=request_id,
                 max_tokens=max_tokens,
                 min_tokens=min_tokens,
-                stream=kwargs.get("stream"),
+                stream=stream,
                 **gen_settings_log_dict,
                 token_healing=token_healing,
                 auto_scale_penalty_range=auto_scale_penalty_range,
