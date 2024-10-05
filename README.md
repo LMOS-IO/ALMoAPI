@@ -8,6 +8,23 @@ Although this fork is still relatively new, we do not aim to maintain the abilit
 > 
 >  ALMoAPI targets advanced users, If you want a simpler project please refer to tabbyAPI.
 
+## Core differences btween us and tabbyAPI
+
+User facing differences:
+- Multiple API key support
+- Optional Redis backed auth provider
+- First class docker support
+- No KoboldAI support (this will be reimplemented using an external conversion layer)
+- (TODO) multi model support
+- (TODO) whisper API support
+- (TODO) ctranslate2 backend support
+
+Developer facing differences:
+- General file structure changes
+- (IN PROGRESS) migrating the internal codebase to remove all instances of `**kwargs`
+- (IN PROGRESS) Migrate subsystems to have clearly defined interfaces (see `auth/interface.py`)
+
+Auth keys and config.yml are not compatible with tabbyAPI. We do not use start scripts.
 
 ## Getting Started
 
