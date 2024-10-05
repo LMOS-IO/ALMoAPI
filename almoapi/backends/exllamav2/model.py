@@ -52,7 +52,7 @@ from common.gen_logging import (
     log_prompt,
     log_response,
 )
-from common.templating import (
+from templating.templating import (
     PromptTemplate,
     TemplateLoadError,
     find_template_from_model,

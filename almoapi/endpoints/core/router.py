@@ -11,7 +11,7 @@ from common.downloader import hf_repo_download
 from common.model import check_embeddings_container, check_model_container
 from common.networking import handle_request_error, run_with_request_disconnect
 from config.config import config
-from common.templating import PromptTemplate, get_all_templates
+from templating.templating import PromptTemplate, get_all_templates
 from common.utils import unwrap
 from common.health import HealthManager
 from endpoints.core.types.auth import AuthPermissionResponse
