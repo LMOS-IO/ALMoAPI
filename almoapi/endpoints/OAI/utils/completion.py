@@ -326,16 +326,12 @@ async def generate_completion(
         logger.info(f"Recieved completion request {request.state.id}")
 
         for _ in range(0, data.n):
-            task_gen_params = data.model_copy(deep=True)
-
             gen_tasks.append(
                 asyncio.create_task(
                     model.container.generate(
-                        data.prompt,
-                        request.state.id,
-                        **cast_model(
-                            task_gen_params, TempModelForGenerator
-                        ).model_dump(),
+                        prompt=data.prompt,
+                        request_id=request.state.id,
+                        gen_params=data.model_copy(deep=True),
                     )
                 )
             )

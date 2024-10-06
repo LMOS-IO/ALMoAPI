@@ -382,9 +382,9 @@ async def generate_chat_completion(
             gen_tasks.append(
                 asyncio.create_task(
                     model.container.generate(
-                        prompt,
-                        request.state.id,
-                        **cast_model(data, TempModelForGenerator).model_dump(),
+                        prompt=prompt,
+                        request_id=request.state.id,
+                        gen_params=data.model_copy(deep=True),
                     )
                 )
             )
@@ -424,7 +424,6 @@ async def generate_tool_calls(
     # FIXME: May not be necessary depending on how the codebase evolves
     tool_data = data.model_copy(deep=True)
     tool_data.json_schema = tool_data.tool_call_schema
-    gen_params = tool_data.model_dump()
 
     for idx, gen in enumerate(generations):
         if gen["stop_str"] in tool_data.tool_call_start:
@@ -441,9 +440,9 @@ async def generate_tool_calls(
             gen_tasks.append(
                 asyncio.create_task(
                     model.container.generate(
-                        pre_tool_prompt,
-                        request.state.id,
-                        **cast_model(gen_params, TempModelForGenerator).model_dump(),
+                        prompt=pre_tool_prompt,
+                        request_id=request.state.id,
+                        gen_params=tool_data,
                     )
                 )
             )

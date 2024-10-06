@@ -1,264 +1,286 @@
-"""Common functions for sampling parameters"""
-
 import json
-from pydantic_core import ValidationError
-from pydantic import (
-    AliasChoices,
-    BaseModel,
-    ConfigDict,
-    Field,
-    field_validator,
-    model_validator,
-)
-from typing import Dict, List, Optional, Union
+from pydantic import BaseModel, Field, field_validator, model_validator, ConfigDict
+from typing import Dict, List, Optional
 
 
-# Common class for sampler params
 class BaseSamplerRequest(BaseModel):
-    """Common class for sampler params that are used in APIs"""
+    """Common class for sampler parameters used in APIs."""
 
-    max_tokens: Optional[int] = Field(
-        default=150,
-        validation_alias=AliasChoices("max_tokens", "max_length"),
-        description="Aliases: max_length",
-        examples=[150],
+    max_tokens: int = Field(
+        150,
+        alias="max_length",
         ge=0,
+        description="Maximum number of tokens to generate.",
+        examples=[150, 256],
     )
-
-    min_tokens: Optional[int] = Field(
-        default=0,
-        validation_alias=AliasChoices("min_tokens", "min_length"),
-        description="Aliases: min_length",
-        examples=[0],
+    min_tokens: int = Field(
+        0,
+        alias="min_length",
         ge=0,
+        description="Minimum number of tokens to generate.",
+        examples=[0, 10],
     )
-
-    generate_window: Optional[int] = Field(
-        default=512,
-        examples=[512],
+    generate_window: int = Field(
+        512,
         ge=0,
+        description="The size of the generation window for the model.",
+        examples=[512, 1024],
     )
-
-    stop: Optional[Union[str, List[Union[str, int]]]] = Field(
-        default=[],
-        validation_alias=AliasChoices("stop", "stop_sequence"),
-        description="Aliases: stop_sequence",
+    stop: List[str] = Field(
+        default_factory=list,
+        alias="stop_sequence",
+        description="Sequences that will cause the model to stop generation.",
+        examples=[[".", "\n"]],
     )
-
-    banned_strings: Optional[Union[str, List[str]]] = Field(default=[])
-
-    banned_tokens: Optional[Union[List[int], str]] = Field(
-        default=[],
-        validation_alias=AliasChoices("banned_tokens", "custom_token_bans"),
-        description="Aliases: custom_token_bans",
+    banned_strings: List[str] = Field(
+        default_factory=list,
+        description="Strings that should not appear in the generated output.",
+        examples=[["banned_word1", "banned_word2"]],
+    )
+    banned_tokens: List[int] = Field(
+        default_factory=list,
+        alias="custom_token_bans",
+        description="List of token IDs that should not appear in the output.",
         examples=[[128, 330]],
     )
-
-    allowed_tokens: Optional[Union[List[int], str]] = Field(
-        default=[],
-        validation_alias=AliasChoices("allowed_tokens", "allowed_token_ids"),
-        description="Aliases: allowed_token_ids",
+    allowed_tokens: List[int] = Field(
+        default_factory=list,
+        alias="allowed_token_ids",
+        description="List of token IDs that are allowed to be used.",
         examples=[[128, 330]],
     )
-
-    token_healing: Optional[bool] = Field(default=False)
-
-    temperature: Optional[float] = Field(
-        default=1.0,
-        examples=[1.0],
-        ge=0,
-        le=10,
-    )
-
-    temperature_last: Optional[bool] = Field(default=False)
-
-    smoothing_factor: Optional[float] = Field(
-        default=0.0,
-        ge=0,
-    )
-
-    top_k: Optional[int] = Field(
-        default=0,
-        ge=0,
-    )
-
-    top_p: Optional[float] = Field(
-        default=1.0,
-        ge=0,
-        le=1,
-        examples=[1.0],
-    )
-
-    top_a: Optional[float] = Field(default=0.0)
-
-    min_p: Optional[float] = Field(default=0.0)
-
-    tfs: Optional[float] = Field(
-        default=1.0,
-        examples=[1.0],
-    )
-
-    typical: Optional[float] = Field(
-        default=1.0,
-        validation_alias=AliasChoices("typical", "typical_p"),
-        description="Aliases: typical_p",
-        examples=[1.0],
-        gt=0,
-        le=1,
-    )
-
-    skew: Optional[float] = Field(
-        default=0.0,
-        examples=[0.0],
-    )
-
-    xtc_probability: Optional[float] = Field(
-        default=0.0,
-    )
-
-    xtc_threshold: Optional[float] = Field(default=0.1)
-
-    frequency_penalty: Optional[float] = Field(
-        default=0.0,
-        ge=0,
-    )
-
-    presence_penalty: Optional[float] = Field(
-        default=0.0,
-        ge=0,
-    )
-
-    repetition_penalty: Optional[float] = Field(
-        default=1.0,
-        validation_alias=AliasChoices("repetition_penalty", "rep_pen"),
-        description="Aliases: rep_pen",
-        examples=[1.0],
-        gt=0,
-    )
-
-    penalty_range: Optional[int] = Field(
-        default=-1,
-        validation_alias=AliasChoices(
-            "penalty_range",
-            "repetition_range",
-            "repetition_penalty_range",
-            "rep_pen_range",
-        ),
-        description=(
-            "Aliases: repetition_range, repetition_penalty_range, rep_pen_range"
-        ),
-    )
-
-    repetition_decay: Optional[int] = Field(default=0)
-
-    dry_multiplier: Optional[float] = Field(default=0.0)
-
-    dry_base: Optional[float] = Field(default=0.0)
-
-    dry_allowed_length: Optional[int] = Field(default=0)
-
-    dry_range: Optional[int] = Field(
-        default=0,
-        validation_alias=AliasChoices("dry_range", "dry_penalty_last_n"),
-        description="Aliases: dry_penalty_last_n",
-    )
-
-    dry_sequence_breakers: Optional[Union[str, List[str]]] = Field(default=[])
-
-    mirostat: Optional[bool] = False
-
-    mirostat_mode: Optional[int] = Field(default=0)
-
-    mirostat_tau: Optional[float] = Field(
-        default=1.5,
-        examples=[1.5],
-    )
-
-    mirostat_eta: Optional[float] = Field(
-        default=0.3,
-        examples=[0.3],
-    )
-
-    add_bos_token: Optional[bool] = Field(default=True)
-
-    ban_eos_token: Optional[bool] = Field(
-        default=False,
-        validation_alias=AliasChoices("ban_eos_token", "ignore_eos"),
-        description="Aliases: ignore_eos",
-        examples=[False],
-    )
-
-    skip_special_tokens: Optional[bool] = Field(
-        default=True,
+    token_healing: bool = Field(
+        False,
+        description="Enables token healing to improve text generation quality.",
         examples=[True],
     )
-
-    logit_bias: Optional[Dict[int, float]] = Field(
-        default={},
-        examples=[{"1": 10, "2": 50}],
+    temperature: float = Field(
+        0,
+        ge=0,
+        le=10,
+        description="Controls randomness in generation; "
+        + "lower values make output more deterministic.",
+        examples=[1.0, 0.7, 2.0],
     )
-
-    negative_prompt: Optional[str] = Field(default=None)
-
+    temperature_last: bool = Field(
+        False,
+        description="Applies temperature scaling only"
+        + "to the final token in the sequence.",
+        examples=[False, True],
+    )
+    smoothing_factor: float = Field(
+        0.0,
+        ge=0,
+        description="Smoothing factor for probability distribution.",
+        examples=[0.0, 0.5],
+    )
+    top_k: int = Field(
+        0,
+        ge=0,
+        description="Limits the next token choices to the top K most likely tokens.",
+        examples=[0, 50, 100],
+    )
+    top_p: float = Field(
+        1.0,
+        ge=0,
+        le=1,
+        description="Limits the next token choices to a cumulative probability.",
+        examples=[1.0, 0.9, 0.7],
+    )
+    top_a: float = Field(
+        0.0,
+        description="Controls the threshold to add diversity in sampling.",
+        examples=[0.0, 0.5],
+    )
+    min_p: float = Field(
+        0.0,
+        description="Minimum cumulative probability"
+        + "threshold for next token selection.",
+        examples=[0.0, 0.2],
+    )
+    tfs: float = Field(
+        1.0, description="Tail free sampling value.", examples=[1.0, 0.9]
+    )
+    typical: float = Field(
+        1.0,
+        alias="typical_p",
+        gt=0,
+        le=1,
+        description="Typical sampling, a strategy to ensure "
+        + "the generated text follows typical use cases.",
+        examples=[1.0, 0.8],
+    )
+    skew: float = Field(
+        0.0,
+        description="Skew factor for token selection probability distribution.",
+        examples=[0.0, 0.1],
+    )
+    xtc_probability: float = Field(
+        0.0,
+        description="Probability of applying the"
+        + "Exclude Top Choices (XTC) sampling method.",
+        examples=[0.0, 0.4],
+    )
+    xtc_threshold: float = Field(
+        0.1,
+        description="Threshold for determining which tokens"
+        + "are excluded by the XTC sampler.",
+        examples=[0.1, 0.3],
+    )
+    frequency_penalty: float = Field(
+        0.0,
+        ge=0,
+        description="Penalty applied to repeated tokens based on frequency.",
+        examples=[0.0, 0.5],
+    )
+    presence_penalty: float = Field(
+        0.0,
+        ge=0,
+        description="Penalty for tokens that have already appeared in the text.",
+        examples=[0.0, 0.6],
+    )
+    repetition_penalty: float = Field(
+        1.0,
+        alias="rep_pen",
+        gt=0,
+        description="Penalty factor applied to repeated tokens.",
+        examples=[1.0, 1.2],
+    )
+    penalty_range: int = Field(
+        -1,
+        alias="rep_pen_range",
+        description="Range over which the repetition penalty is applied.",
+        examples=[-1, 20],
+    )
+    repetition_decay: int = Field(
+        0,
+        description="Controls decay of repetition penalty over tokens.",
+        examples=[0, 10],
+    )
+    dry_multiplier: float = Field(
+        0.0, description="Multiplier for dry run scoring.", examples=[0.0, 1.5]
+    )
+    dry_base: float = Field(
+        0.0, description="Base value used in dry run calculations.", examples=[0.0, 2.0]
+    )
+    dry_allowed_length: int = Field(
+        0,
+        description="The length allowed before dry penalty takes effect.",
+        examples=[0, 15],
+    )
+    dry_range: int = Field(
+        0,
+        alias="dry_penalty_last_n",
+        description="Range for dry penalty application.",
+        examples=[0, 5],
+    )
+    dry_sequence_breakers: List[str] = Field(
+        default_factory=list,
+        description="Sequence breakers for dry penalty calculation.",
+        examples=[["breaker1", "breaker2"]],
+    )
+    mirostat: bool = Field(
+        False, description="Enables the Mirostat sampling algorithm.", examples=[True]
+    )
+    mirostat_mode: int = Field(
+        0,
+        description="Set Mirostat mode; different modes for different behaviors.",
+        examples=[0, 2],
+    )
+    mirostat_tau: float = Field(
+        1.5,
+        description="Controls the target mean entropy for Mirostat.",
+        examples=[1.5, 2.0],
+    )
+    mirostat_eta: float = Field(
+        0.3,
+        description="Controls the learning rate for entropy adjustments in Mirostat.",
+        examples=[0.3, 0.5],
+    )
+    add_bos_token: bool = Field(
+        True,
+        description="Indicates whether to add a beginning-of-sequence (BOS) token.",
+        examples=[True, False],
+    )
+    ban_eos_token: bool = Field(
+        False,
+        alias="ignore_eos",
+        description="Prevents the end-of-sequence (EOS) token from being used.",
+        examples=[False, True],
+    )
+    skip_special_tokens: bool = Field(
+        True,
+        description="Skip special tokens during generation.",
+        examples=[True, False],
+    )
+    logit_bias: Dict[int, float] = Field(
+        default_factory=dict,
+        description="Adjusts the probability of specific tokens via bias values.",
+        examples=[{1: 10.0, 2: -5.0}],
+    )
+    negative_prompt: Optional[str] = Field(
+        None,
+        description="A prompt to negatively influence the generated content.",
+        examples=["Do not generate violent content."],
+    )
     json_schema: Optional[object] = Field(
-        default=None,
+        None, description="Optional JSON schema for structure validation."
     )
-
     regex_pattern: Optional[str] = Field(
-        default=None,
+        None,
+        description="Regular expression pattern to validate generated output.",
+        examples=["[A-Za-z0-9]+"],
     )
-
     grammar_string: Optional[str] = Field(
-        default=None,
+        None, description="Grammar string used for advanced parsing requirements."
     )
-
     speculative_ngram: Optional[bool] = Field(
-        default=None,
+        None,
+        description="Enable speculative n-gram processing for improved prediction.",
+        examples=[True],
     )
-
-    cfg_scale: Optional[float] = Field(
-        default=1.0,
-        validation_alias=AliasChoices("cfg_scale", "guidance_scale"),
-        description="Aliases: guidance_scale",
-        examples=[1.0],
+    cfg_scale: float = Field(
+        1.0,
+        alias="guidance_scale",
+        description="Scale for classifier-free guidance during generation.",
+        examples=[1.0, 3.0],
     )
-
-    max_temp: Optional[float] = Field(
-        default=1.0,
-        validation_alias=AliasChoices("max_temp", "dynatemp_high"),
-        description="Aliases: dynatemp_high",
-        examples=[1.0],
+    max_temp: float = Field(
+        1.0,
+        alias="dynatemp_high",
         ge=0,
+        description="Maximum temperature for dynamic adjustment.",
+        examples=[1.0, 2.5],
     )
-
-    min_temp: Optional[float] = Field(
-        default=1.0,
-        validation_alias=AliasChoices("min_temp", "dynatemp_low"),
-        description="Aliases: dynatemp_low",
-        examples=[1.0],
+    min_temp: float = Field(
+        1.0,
+        alias="dynatemp_low",
         ge=0,
+        description="Minimum temperature for dynamic adjustment.",
+        examples=[0.5, 1.0],
     )
-
-    temp_exponent: Optional[float] = Field(
-        default=1.0,
-        validation_alias=AliasChoices("temp_exponent", "dynatemp_exponent"),
-        examples=[1.0],
+    temp_exponent: float = Field(
+        1.0,
+        alias="dynatemp_exponent",
         ge=0,
+        description="Exponent for temperature scaling calculations.",
+        examples=[1.0, 0.8],
     )
 
-    model_config = ConfigDict(validate_assignment=True)
+    model_config = ConfigDict(validate_assignment=True, populate_by_name=True)
 
     @model_validator(mode="after")
     def validate_params(self):
-        """
-        Validates sampler parameters to be within sane ranges.
-        """
+        """Validates sampler parameters to be within sane ranges."""
+        if self.min_temp > self.max_temp:
+            raise ValueError("min_temp cannot be greater than max_temp")
 
-        if self.min_temp and self.max_temp and self.min_temp > self.max_temp:
-            raise ValidationError("min temp cannot be more then max temp")
+        if self.min_tokens > self.max_tokens:
+            raise ValueError("min_tokens cannot be greater than max_tokens")
 
-        if self.min_tokens and self.max_tokens and self.min_tokens > self.max_tokens:
-            raise ValidationError("min tokens cannot be more then max tokens")
+        # Enable mirostat based on mirostat_mode
+        if self.mirostat_mode == 2:
+            self.mirostat = True
 
         return self
 
@@ -283,10 +305,5 @@ class BaseSamplerRequest(BaseModel):
             v = f"[{v}]"
         try:
             return json.loads(v) if isinstance(v, str) else v
-        except Exception:
-            return []  # Return empty list if parsing fails
-
-    @field_validator("mirostat", mode="before")
-    def convert_mirostat(cls, v, values):
-        """Mirostat is enabled if mirostat_mode == 2."""
-        return values.get("mirostat_mode") == 2
+        except json.JSONDecodeError:
+            return []

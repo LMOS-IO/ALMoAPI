@@ -70,13 +70,11 @@ async def completion_request(
     if isinstance(data.prompt, list):
         data.prompt = "\n".join(data.prompt)
 
-    disable_request_streaming = config.developer.disable_request_streaming
-
     # Set an empty JSON schema if the request wants a JSON response
     if data.response_format.type == "json":
         data.json_schema = {"type": "object"}
 
-    if data.stream and not disable_request_streaming:
+    if data.stream and not config.developer.disable_request_streaming:
         return EventSourceResponse(
             stream_generate_completion(data, request, model_path),
             ping=maxsize,
