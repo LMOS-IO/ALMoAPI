@@ -10,7 +10,6 @@ from fastapi import HTTPException, Request
 from jinja2 import TemplateError
 from loguru import logger
 
-from endpoints.OAI.types.temp_models import TempModelForGenerator
 from common import model
 from common.networking import (
     get_generator_error,
@@ -18,7 +17,7 @@ from common.networking import (
     handle_request_error,
     request_disconnect_loop,
 )
-from common.utils import cast_model, unwrap
+from common.utils import unwrap
 from endpoints.OAI.types.chat_completion import (
     ChatCompletionLogprobs,
     ChatCompletionLogprob,
@@ -101,8 +100,8 @@ def _create_response(
 
 def _create_stream_chunk(
     request_id: str,
-    generation: Optional[dict] = None,
-    model_name: Optional[str] = None,
+    generation: dict,
+    model_name: str,
     is_usage_chunk: bool = False,
 ):
     """Create a chat completion stream chunk from the provided text."""
@@ -301,7 +300,7 @@ async def stream_generate_chat_completion(
                     prompt,
                     request.state.id,
                     abort_event,
-                    **cast_model(task_gen_params, TempModelForGenerator).model_dump(),
+                    gen_params=task_gen_params,
                 )
             )
 
@@ -338,7 +337,9 @@ async def stream_generate_chat_completion(
                 raise generation
 
             response = _create_stream_chunk(
-                request.state.id, generation, model_path.name
+                request_id=request.state.id,
+                generation=generation,
+                model_name=model_path.name,
             )
             yield response.model_dump_json()
 
@@ -347,9 +348,9 @@ async def stream_generate_chat_completion(
                 # Send a usage chunk
                 if data.stream_options and data.stream_options.include_usage:
                     usage_chunk = _create_stream_chunk(
-                        request.state.id,
-                        generation,
-                        model_path.name,
+                        request_id=request.state.id,
+                        generation=generation,
+                        model_name=model_path.name,
                         is_usage_chunk=True,
                     )
                     yield usage_chunk.model_dump_json()

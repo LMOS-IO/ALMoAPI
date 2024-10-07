@@ -920,8 +920,8 @@ class ExllamaV2Container:
         self,
         prompt: str,
         request_id: str,
+        gen_params: BaseSamplerRequest,
         abort_event: Optional[asyncio.Event] = None,
-        gen_params: BaseSamplerRequest = None,
     ):
         """
         Create generator function for prompt completion.
@@ -950,6 +950,7 @@ class ExllamaV2Container:
             # XTC sampler settings
             xtc_probability=gen_params.xtc_probability,
             xtc_threshold=gen_params.xtc_threshold,
+            # misc samplers
             smoothing_factor=gen_params.smoothing_factor,
             top_k=gen_params.top_k,
             top_p=gen_params.top_p,

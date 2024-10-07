@@ -14,11 +14,9 @@ from common.args import convert_args_to_dict, init_argparser
 from common.actions import branch_to_actions
 from common.signals import signal_handler
 from config.config import config
-from common.utils import cast_model
 from endpoints.server import start_api
 
 from backends.exllamav2.version import check_exllama_version
-from backends.exllamav2.types import DraftModelInstanceConfig, ModelInstanceConfig
 
 
 async def entrypoint_async():
@@ -33,8 +31,8 @@ async def entrypoint_async():
     # and load the model
     if config.model.model_name:
         await model.load_model(
-            model=cast_model(config.model, ModelInstanceConfig),
-            draft=cast_model(config.draft_model, DraftModelInstanceConfig),
+            model=config.model,
+            draft=config.draft_model,
         )
 
         # Load loras after loading the model

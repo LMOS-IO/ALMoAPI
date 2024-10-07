@@ -8,11 +8,11 @@ import asyncio
 import pathlib
 from asyncio import CancelledError
 from fastapi import HTTPException, Request
-from typing import List, Optional, Union
+from typing import List, Union
 
 from loguru import logger
 
-from endpoints.OAI.types.temp_models import TempModelForGenerator
+from samplers.sampling import BaseSamplerRequest
 from auth.types import AuthPermission
 from auth import AuthManager
 from backends.exllamav2.types import ModelInstanceConfig
@@ -24,7 +24,7 @@ from common.networking import (
     request_disconnect_loop,
 )
 from config.config import config
-from common.utils import cast_model, unwrap
+from common.utils import unwrap
 from endpoints.OAI.types.completion import (
     CompletionRequest,
     CompletionResponse,
@@ -92,110 +92,17 @@ async def _stream_collector(
     prompt: str,
     request_id: str,
     abort_event: asyncio.Event,
-    token_healing: Optional[bool] = False,
-    generate_window: Optional[int] = None,
-    temperature: Optional[float] = 1.0,
-    temperature_last: Optional[bool] = False,
-    smoothing_factor: Optional[float] = 0.0,
-    top_k: Optional[int] = 0,
-    top_p: Optional[float] = 1.0,
-    top_a: Optional[float] = 0.0,
-    min_p: Optional[float] = 0.0,
-    tfs: Optional[float] = 1.0,
-    typical: Optional[float] = 1.0,
-    mirostat: Optional[bool] = False,
-    skew: Optional[int] = 0,
-    xtc_probability: Optional[float] = 0.0,
-    xtc_threshold: Optional[float] = 0.1,
-    max_temp: Optional[float] = 1.0,
-    min_temp: Optional[float] = 1.0,
-    temp_exponent: Optional[float] = 1.0,
-    mirostat_tau: Optional[float] = 1.5,
-    mirostat_eta: Optional[float] = 0.1,
-    cfg_scale: Optional[float] = 1.0,
-    negative_prompt: Optional[str] = None,
-    repetition_penalty: Optional[float] = 1.0,
-    frequency_penalty: Optional[float] = 0.0,
-    presence_penalty: Optional[float] = 0.0,
-    penalty_range: Optional[int] = None,
-    repetition_decay: Optional[int] = None,
-    dry_multiplier: Optional[float] = 0.0,
-    dry_allowed_length: Optional[int] = 0,
-    dry_base: Optional[float] = 0.0,
-    dry_range: Optional[int] = None,
-    dry_sequence_breakers: Optional[List[str]] = None,
-    json_schema: Optional[dict] = None,
-    regex_pattern: Optional[str] = None,
-    grammar_string: Optional[str] = None,
-    banned_strings: Optional[List[str]] = None,
-    stop: Optional[List[Union[str, int]]] = None,
-    add_bos_token: Optional[bool] = True,
-    ban_eos_token: Optional[bool] = False,
-    logit_bias: Optional[dict] = None,
-    logprobs: Optional[int] = 0,
-    speculative_ngram: Optional[bool] = False,
-    max_tokens: Optional[int] = None,
-    min_tokens: Optional[int] = 0,
-    skip_special_tokens: Optional[bool] = False,
-    banned_tokens: Optional[List[int]] = None,
-    allowed_tokens: Optional[List[int]] = None,
-    stream: Optional[bool] = False,
+    gen_params: BaseSamplerRequest,
 ):
     """Collects a stream and places results in a common queue"""
+    assert model.container is not None, "Model container not loaded"
 
     try:
         new_generation = model.container.generate_gen(
-            prompt,
-            request_id,
-            abort_event,
-            token_healing,
-            generate_window,
-            temperature,
-            temperature_last,
-            smoothing_factor,
-            top_k,
-            top_p,
-            top_a,
-            min_p,
-            tfs,
-            typical,
-            mirostat,
-            skew,
-            xtc_probability,
-            xtc_threshold,
-            max_temp,
-            min_temp,
-            temp_exponent,
-            mirostat_tau,
-            mirostat_eta,
-            cfg_scale,
-            negative_prompt,
-            repetition_penalty,
-            frequency_penalty,
-            presence_penalty,
-            penalty_range,
-            repetition_decay,
-            dry_multiplier,
-            dry_allowed_length,
-            dry_base,
-            dry_range,
-            dry_sequence_breakers,
-            json_schema,
-            regex_pattern,
-            grammar_string,
-            banned_strings,
-            stop,
-            add_bos_token,
-            ban_eos_token,
-            logit_bias,
-            logprobs,
-            speculative_ngram,
-            max_tokens,
-            min_tokens,
-            skip_special_tokens,
-            banned_tokens,
-            allowed_tokens,
-            stream,
+            prompt=prompt,
+            request_id=request_id,
+            abort_event=abort_event,
+            gen_params=gen_params,
         )
         async for generation in new_generation:
             generation["index"] = task_idx
@@ -232,7 +139,7 @@ async def load_inline_model(model_name: str, request: Request):
     if not config.model.inline_model_loading:
         logger.warning(
             f"Unable to switch model to {model_name} because "
-            '"inline_model_loading" is not True in config.yml.'
+            '"inline_model_loading" is not enabled'
         )
 
         return
@@ -268,12 +175,12 @@ async def stream_generate_completion(
 
             gen_task = asyncio.create_task(
                 _stream_collector(
-                    n,
-                    gen_queue,
-                    data.prompt,
-                    request.state.id,
-                    abort_event,
-                    **cast_model(task_gen_params, TempModelForGenerator).model_dump(),
+                    task_idx=n,
+                    gen_queue=gen_queue,
+                    prompt=data.prompt,
+                    request_id=request.state.id,
+                    abort_event=abort_event,
+                    gen_params=task_gen_params,
                 )
             )
 
