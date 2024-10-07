@@ -213,19 +213,7 @@ async def format_prompt_with_template(
             unwrap(data.ban_eos_token, False),
         )
 
-        # Deal with list in messages.content
-        # Just replace the content list with the very first text message
         for message in data.messages:
-            if isinstance(message["content"], list):
-                message["content"] = next(
-                    (
-                        content["text"]
-                        for content in message["content"]
-                        if content["type"] == "text"
-                    ),
-                    "",
-                )
-
             if "tool_calls" in message:
                 message["tool_calls_json"] = json.dumps(message["tool_calls"], indent=2)
 
