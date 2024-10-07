@@ -16,9 +16,12 @@ def unwrap(wrapped: Optional[T], default: T) -> T:
     return wrapped
 
 
-def coalesce(*args):
-    """Coalesce function for multiple unwraps."""
-    return next((arg for arg in args if arg is not None), None)
+def coalesce(*args: Optional[T], default: T) -> T:
+    """Coalesce function with a default return value."""
+    for arg in args:
+        if arg is not None:
+            return arg
+    return default
 
 
 def filter_none_values(collection: Union[dict, list]) -> Union[dict, list]:

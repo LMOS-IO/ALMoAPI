@@ -1009,7 +1009,7 @@ class ExllamaV2Container:
         else:
             fallback_decay = gen_settings.token_repetition_range
         gen_settings.token_repetition_decay = coalesce(
-            gen_params.repetition_decay, fallback_decay, 0
+            gen_params.repetition_decay, fallback_decay, default=0
         )
 
         # < 0 = disabled
