@@ -128,7 +128,7 @@ async def load_inline_model(model_name: str, request: Request):
         return
 
     # Inline model loading isn't enabled or the user isn't an admin
-    if not AuthManager.get_key_permission(request) == AuthPermission.admin:
+    if not (await AuthManager.get_key_permission(request) == AuthPermission.admin):
         error_message = handle_request_error(
             f"Unable to switch model to {model_name} because "
             + "an admin key isn't provided",
