@@ -242,6 +242,7 @@ class ExllamaV2Container:
         if rope_alpha == "auto":
             self.config.scale_alpha_value = self.calculate_rope_alpha(base_seq_len)
         else:
+            assert isinstance(rope_alpha, float)
             self.config.scale_alpha_value = rope_alpha
 
         # Set max batch size to the config override
@@ -858,7 +859,7 @@ class ExllamaV2Container:
 
     async def generate(
         self,
-        gen_params: None,
+        gen_params: BaseSamplerRequest,
         prompt: str,
         request_id: str,
         abort_event: Optional[asyncio.Event] = None,
@@ -866,10 +867,10 @@ class ExllamaV2Container:
         """Generate a response to a prompt."""
         generations = []
         async for generation in self.generate_gen(
-            prompt,
-            request_id,
-            abort_event,
-            gen_params,
+            prompt=prompt,
+            request_id=request_id,
+            gen_params=gen_params,
+            abort_event=abort_event,
         ):
             generations.append(generation)
 
@@ -928,6 +929,11 @@ class ExllamaV2Container:
 
         Keyword arguments are used to set various generation parameters.
         """
+
+        # assertions to make sure this cannot be ran without a model
+        assert self.tokenizer is not None
+        assert self.generator is not None
+        assert gen_params is not None
 
         # Wait for load lock to be freed before processing
         async with self.load_condition:

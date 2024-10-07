@@ -96,6 +96,7 @@ async def _stream_collector(
 ):
     """Collects a stream and places results in a common queue"""
     assert model.container is not None, "Model container not loaded"
+    assert gen_params is not None
 
     try:
         new_generation = model.container.generate_gen(
@@ -172,6 +173,8 @@ async def stream_generate_completion(
 
         for n in range(0, data.n):
             task_gen_params = data.model_copy(deep=True)
+
+            assert task_gen_params is not None
 
             gen_task = asyncio.create_task(
                 _stream_collector(
