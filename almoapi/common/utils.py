@@ -1,14 +1,14 @@
 """Common utility functions"""
 
 from types import NoneType
-from typing import Dict, Type, Union, get_args, get_origin, TypeVar
+from typing import Dict, Optional, Type, Union, get_args, get_origin, TypeVar
 from pydantic import BaseModel
 
 T = TypeVar("T")
 M = TypeVar("M", bound=BaseModel)
 
 
-def unwrap(wrapped: Type[T], default: Type[T]) -> T:
+def unwrap(wrapped: Optional[T], default: T) -> T:
     """Unwrap function for Optionals."""
     if wrapped is None:
         return default
@@ -16,9 +16,12 @@ def unwrap(wrapped: Type[T], default: Type[T]) -> T:
     return wrapped
 
 
-def coalesce(*args):
-    """Coalesce function for multiple unwraps."""
-    return next((arg for arg in args if arg is not None), None)
+def coalesce(*args: Optional[T], default: T) -> T:
+    """Coalesce function with a default return value."""
+    for arg in args:
+        if arg is not None:
+            return arg
+    return default
 
 
 def filter_none_values(collection: Union[dict, list]) -> Union[dict, list]:

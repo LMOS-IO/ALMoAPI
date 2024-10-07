@@ -100,8 +100,8 @@ def _create_response(
 
 def _create_stream_chunk(
     request_id: str,
-    generation: Optional[dict] = None,
-    model_name: Optional[str] = None,
+    generation: dict,
+    model_name: str,
     is_usage_chunk: bool = False,
 ):
     """Create a chat completion stream chunk from the provided text."""
@@ -213,19 +213,7 @@ async def format_prompt_with_template(
             unwrap(data.ban_eos_token, False),
         )
 
-        # Deal with list in messages.content
-        # Just replace the content list with the very first text message
         for message in data.messages:
-            if isinstance(message["content"], list):
-                message["content"] = next(
-                    (
-                        content["text"]
-                        for content in message["content"]
-                        if content["type"] == "text"
-                    ),
-                    "",
-                )
-
             if "tool_calls" in message:
                 message["tool_calls_json"] = json.dumps(message["tool_calls"], indent=2)
 
@@ -293,6 +281,8 @@ async def stream_generate_chat_completion(
         for n in range(0, data.n):
             task_gen_params = data.model_copy(deep=True)
 
+            assert task_gen_params is not None
+
             gen_task = asyncio.create_task(
                 _stream_collector(
                     n,
@@ -300,7 +290,7 @@ async def stream_generate_chat_completion(
                     prompt,
                     request.state.id,
                     abort_event,
-                    **task_gen_params.model_dump(),
+                    gen_params=task_gen_params,
                 )
             )
 
@@ -337,7 +327,9 @@ async def stream_generate_chat_completion(
                 raise generation
 
             response = _create_stream_chunk(
-                request.state.id, generation, model_path.name
+                request_id=request.state.id,
+                generation=generation,
+                model_name=model_path.name,
             )
             yield response.model_dump_json()
 
@@ -346,9 +338,9 @@ async def stream_generate_chat_completion(
                 # Send a usage chunk
                 if data.stream_options and data.stream_options.include_usage:
                     usage_chunk = _create_stream_chunk(
-                        request.state.id,
-                        generation,
-                        model_path.name,
+                        request_id=request.state.id,
+                        generation=generation,
+                        model_name=model_path.name,
                         is_usage_chunk=True,
                     )
                     yield usage_chunk.model_dump_json()
@@ -381,7 +373,9 @@ async def generate_chat_completion(
             gen_tasks.append(
                 asyncio.create_task(
                     model.container.generate(
-                        prompt, request.state.id, **data.model_dump()
+                        prompt=prompt,
+                        request_id=request.state.id,
+                        gen_params=data.model_copy(deep=True),
                     )
                 )
             )
@@ -421,7 +415,6 @@ async def generate_tool_calls(
     # FIXME: May not be necessary depending on how the codebase evolves
     tool_data = data.model_copy(deep=True)
     tool_data.json_schema = tool_data.tool_call_schema
-    gen_params = tool_data.model_dump()
 
     for idx, gen in enumerate(generations):
         if gen["stop_str"] in tool_data.tool_call_start:
@@ -438,7 +431,9 @@ async def generate_tool_calls(
             gen_tasks.append(
                 asyncio.create_task(
                     model.container.generate(
-                        pre_tool_prompt, request.state.id, **gen_params
+                        prompt=pre_tool_prompt,
+                        request_id=request.state.id,
+                        gen_params=tool_data,
                     )
                 )
             )

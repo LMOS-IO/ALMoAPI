@@ -36,7 +36,7 @@ class CommonCompletionRequest(BaseSamplerRequest):
     response_format: Optional[CompletionResponseFormat] = Field(
         default_factory=CompletionResponseFormat
     )
-    n: Optional[int] = Field(default=1, ge=1)
+    n: int = Field(default=1, ge=1)
 
     # Extra OAI request stuff
     best_of: Optional[int] = Field(

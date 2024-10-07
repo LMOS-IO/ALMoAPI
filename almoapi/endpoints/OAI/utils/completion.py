@@ -12,6 +12,7 @@ from typing import List, Union
 
 from loguru import logger
 
+from samplers.sampling import BaseSamplerRequest
 from auth.types import AuthPermission
 from auth import AuthManager
 from backends.exllamav2.types import ModelInstanceConfig
@@ -91,13 +92,18 @@ async def _stream_collector(
     prompt: str,
     request_id: str,
     abort_event: asyncio.Event,
-    **kwargs,
+    gen_params: BaseSamplerRequest,
 ):
     """Collects a stream and places results in a common queue"""
+    assert model.container is not None, "Model container not loaded"
+    assert gen_params is not None
 
     try:
         new_generation = model.container.generate_gen(
-            prompt, request_id, abort_event, **kwargs
+            prompt=prompt,
+            request_id=request_id,
+            abort_event=abort_event,
+            gen_params=gen_params,
         )
         async for generation in new_generation:
             generation["index"] = task_idx
@@ -122,7 +128,7 @@ async def load_inline_model(model_name: str, request: Request):
         return
 
     # Inline model loading isn't enabled or the user isn't an admin
-    if not AuthManager.get_key_permission(request) == AuthPermission.ADMIN:
+    if not AuthManager.get_key_permission(request) == AuthPermission.admin:
         error_message = handle_request_error(
             f"Unable to switch model to {model_name} because "
             + "an admin key isn't provided",
@@ -134,7 +140,7 @@ async def load_inline_model(model_name: str, request: Request):
     if not config.model.inline_model_loading:
         logger.warning(
             f"Unable to switch model to {model_name} because "
-            '"inline_model_loading" is not True in config.yml.'
+            '"inline_model_loading" is not enabled'
         )
 
         return
@@ -168,14 +174,16 @@ async def stream_generate_completion(
         for n in range(0, data.n):
             task_gen_params = data.model_copy(deep=True)
 
+            assert task_gen_params is not None
+
             gen_task = asyncio.create_task(
                 _stream_collector(
-                    n,
-                    gen_queue,
-                    data.prompt,
-                    request.state.id,
-                    abort_event,
-                    **task_gen_params.model_dump(),
+                    task_idx=n,
+                    gen_queue=gen_queue,
+                    prompt=data.prompt,
+                    request_id=request.state.id,
+                    abort_event=abort_event,
+                    gen_params=task_gen_params,
                 )
             )
 
@@ -228,12 +236,12 @@ async def generate_completion(
         logger.info(f"Recieved completion request {request.state.id}")
 
         for _ in range(0, data.n):
-            task_gen_params = data.model_copy(deep=True)
-
             gen_tasks.append(
                 asyncio.create_task(
                     model.container.generate(
-                        data.prompt, request.state.id, **task_gen_params.model_dump()
+                        prompt=data.prompt,
+                        request_id=request.state.id,
+                        gen_params=data.model_copy(deep=True),
                     )
                 )
             )

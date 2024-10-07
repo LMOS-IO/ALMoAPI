@@ -70,13 +70,11 @@ async def completion_request(
     if isinstance(data.prompt, list):
         data.prompt = "\n".join(data.prompt)
 
-    disable_request_streaming = config.developer.disable_request_streaming
-
     # Set an empty JSON schema if the request wants a JSON response
     if data.response_format.type == "json":
         data.json_schema = {"type": "object"}
 
-    if data.stream and not disable_request_streaming:
+    if data.stream and not config.developer.disable_request_streaming:
         return EventSourceResponse(
             stream_generate_completion(data, request, model_path),
             ping=maxsize,
@@ -107,11 +105,13 @@ async def chat_completion_request(
     If stream = true, this returns an SSE stream.
     """
 
+    # check if model is loaded or not
     if data.model:
         await load_inline_model(data.model, request)
     else:
         await check_model_container()
 
+    # check if prompt template is set
     if model.container.prompt_template is None:
         error_message = handle_request_error(
             "Chat completions are disabled because a prompt template is not set.",
@@ -122,6 +122,7 @@ async def chat_completion_request(
 
     model_path = model.container.model_dir
 
+    # apply templating to messages
     if isinstance(data.messages, str):
         prompt = data.messages
     else:
