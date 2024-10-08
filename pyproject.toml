@@ -243,3 +243,10 @@ skip-magic-trailing-comma = false
 
 # Like Black, automatically detect the appropriate line ending.
 line-ending = "auto"
+
+[tool.mypy]
+plugins = ["pydantic.mypy"]
+
+[tool.mypy-pydantic]
+init_typed = true
+warn_untyped_fields = true
