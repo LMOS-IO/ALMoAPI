@@ -73,7 +73,7 @@ async def list_models(request: Request) -> ModelList:
     Requires an admin key to see all models.
     """
 
-    if await AuthManager.get_key_permission(request) == AuthPermission.ADMIN:
+    if await AuthManager.get_key_permission(request) == AuthPermission.admin:
         models = get_model_list(
             config.model.model_dir, config.draft_model.draft_model_dir
         )
@@ -110,7 +110,7 @@ async def list_draft_models(request: Request) -> ModelList:
     Requires an admin key to see all draft models.
     """
 
-    if await AuthManager.get_key_permission(request) == AuthPermission.ADMIN:
+    if await AuthManager.get_key_permission(request) == AuthPermission.admin:
         draft_model_dir = config.draft_model.draft_model_dir
         draft_model_path = pathlib.Path(draft_model_dir)
 
@@ -199,7 +199,7 @@ async def list_all_loras(request: Request) -> LoraList:
     Requires an admin key to see all LoRAs.
     """
 
-    if await AuthManager.get_key_permission(request) == AuthPermission.ADMIN:
+    if await AuthManager.get_key_permission(request) == AuthPermission.admin:
         lora_path = pathlib.Path(config.lora.lora_dir)
         loras = get_lora_list(lora_path.resolve())
     else:
@@ -280,7 +280,7 @@ async def list_embedding_models(request: Request) -> ModelList:
     Requires an admin key to see all embedding models.
     """
 
-    if await AuthManager.get_key_permission(request) == AuthPermission.ADMIN:
+    if await AuthManager.get_key_permission(request) == AuthPermission.admin:
         embedding_model_dir = config.embeddings.embedding_model_dir
         embedding_model_path = pathlib.Path(embedding_model_dir)
 
@@ -439,7 +439,7 @@ async def list_templates(request: Request) -> TemplateList:
     """
 
     template_strings = []
-    if await AuthManager.get_key_permission(request) == AuthPermission.ADMIN:
+    if await AuthManager.get_key_permission(request) == AuthPermission.admin:
         templates = get_all_templates()
         template_strings = [template.stem for template in templates]
     else:

@@ -5,9 +5,11 @@ import json
 import traceback
 from fastapi import Depends, HTTPException, Request
 from loguru import logger
-from pydantic import BaseModel
+from pydantic import BaseModel, SecretStr
 from typing import Optional
 from uuid import uuid4
+
+from requests import head
 
 from config.config import config
 
@@ -101,8 +103,12 @@ async def log_request(request: Request):
 
     log_message = [f"Information for {request.method} request {request.state.id}:"]
 
+    headers = dict(request.headers)
+    if headers.get("Authorization"):
+        headers["Authorization"] = str(SecretStr(headers["Authorization"]))
+    
     log_message.append(f"URL: {request.url}")
-    log_message.append(f"Headers: {dict(request.headers)}")
+    log_message.append(f"Headers: {dict(headers)}")
 
     if request.method != "GET":
         body_bytes = await request.body()

@@ -1,7 +1,9 @@
 # TODO: convert to the generic interface
 
+from inspect import isclass
 from fastapi import Header, HTTPException, Request
 from loguru import logger
+from pydantic import SecretStr
 
 from auth.types import AuthPermission
 from auth.utils import get_test_key
@@ -36,14 +38,19 @@ class AuthProviderManager:
 
         logger.info(f"Auth provider: {provider_name}")
 
-        self.provider = provider_map.get(provider_name)()
+        provider = provider_map.get(provider_name)
+        
+        assert isclass(provider)
+        assert issubclass(provider, AuthInterface)
+        
+        self.provider = provider()
 
     async def get_key_permission(self, request: Request):
         test_key = get_test_key(request)
         return await self.provider.get_permission(test_key)
 
     def require_permission(self, *roles):
-        async def internal_require_permission(authorization: str = Header(None)):
+        async def internal_require_permission(authorization: SecretStr = Header(None)):
             if not authorization:
                 raise HTTPException(401, "Please provide an API key")
 
@@ -55,10 +62,6 @@ class AuthProviderManager:
 
 
 AuthManager = AuthProviderManager()
-
-
-def get_key_permission():
-    pass
 
 
 check_api_key = AuthManager.require_permission(AuthPermission.api, AuthPermission.admin)
