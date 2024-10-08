@@ -39,10 +39,10 @@ class AuthProviderManager:
         logger.info(f"Auth provider: {provider_name}")
 
         provider = provider_map.get(provider_name)
-        
+
         assert isclass(provider)
         assert issubclass(provider, AuthInterface)
-        
+
         self.provider = provider()
 
     async def get_key_permission(self, request: Request):
@@ -50,7 +50,7 @@ class AuthProviderManager:
         return await self.provider.get_permission(test_key)
 
     def require_permission(self, *roles):
-        async def internal_require_permission(authorization: SecretStr = Header(None)):
+        async def internal_require_permission(authorization: SecretStr = Header(None)):  # noqa: B008
             if not authorization:
                 raise HTTPException(401, "Please provide an API key")
 

@@ -9,7 +9,6 @@ from pydantic import BaseModel, SecretStr
 from typing import Optional
 from uuid import uuid4
 
-from requests import head
 
 from config.config import config
 
@@ -104,9 +103,9 @@ async def log_request(request: Request):
     log_message = [f"Information for {request.method} request {request.state.id}:"]
 
     headers = dict(request.headers)
-    if headers.get("Authorization"):
-        headers["Authorization"] = str(SecretStr(headers["Authorization"]))
-    
+    if headers.get("authorization"):
+        headers["authorization"] = str(SecretStr(headers["authorization"]))
+
     log_message.append(f"URL: {request.url}")
     log_message.append(f"Headers: {dict(headers)}")
 

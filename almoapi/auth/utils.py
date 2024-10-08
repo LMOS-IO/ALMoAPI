@@ -9,7 +9,7 @@ def get_test_key(request: Union[Request, SecretStr]) -> SecretStr:
         test_key = request.headers.get("authorization")
     else:
         test_key = request.get_secret_value()
-    
+
     if test_key is None:
         raise ValueError("The provided authentication key is missing.")
 
