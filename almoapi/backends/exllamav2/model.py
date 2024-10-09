@@ -108,7 +108,6 @@ class ExllamaV2Container:
         cls,
         model: ModelInstanceConfig,
         draft: DraftModelInstanceConfig,
-        quiet=False,
     ):
         """
         Primary asynchronous initializer for model container.
@@ -118,8 +117,6 @@ class ExllamaV2Container:
 
         # Create a new instance as a "fake self"
         self = cls()
-
-        self.quiet = quiet
 
         # Initialize config
         self.config = ExLlamaV2Config()
@@ -550,8 +547,7 @@ class ExllamaV2Container:
         # Load draft model if a config is present
         if self.draft_config:
             self.draft_model = ExLlamaV2(self.draft_config)
-            if not self.quiet:
-                logger.info("Loading draft model: " + self.draft_config.model_dir)
+            logger.info("Loading draft model: " + self.draft_config.model_dir)
 
             # Draft uses the autosplit loader, so create a cache that reflects this
             draft_cache_class = self.get_cache_class(self.draft_cache_mode)
@@ -576,8 +572,7 @@ class ExllamaV2Container:
             self.draft_model.forward(input_ids, cache=self.cache, preprocess_only=True)
 
         self.model = ExLlamaV2(self.config)
-        if not self.quiet:
-            logger.info("Loading model: " + self.config.model_dir)
+        logger.info("Loading model: " + self.config.model_dir)
 
         # Get class of the model cache
         cache_class = self.get_cache_class(self.cache_mode)
