@@ -4,7 +4,7 @@ ALMoAPI, Agentic Language Model API, is a fork of [tabbyAPI](https://github.com/
 
 Although this fork is still relatively new, we do not aim to maintain the ability to act as a drop in replacement for TabbyAPI.
 
-> [!INFO]
+> [!TIP]
 >
 > Join the [discord](https://discord.gg/6YZNN25KFN) for updates and discussions.
 
