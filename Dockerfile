@@ -37,4 +37,4 @@ EXPOSE 5000
 ENV ALMOAPI_NETWORK_HOST=0.0.0.0
 
 # Set the entry point
-ENTRYPOINT ["python3", "main.py"]
+ENTRYPOINT ["python3", "start.py"]
