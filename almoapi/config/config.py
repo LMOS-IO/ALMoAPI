@@ -12,6 +12,7 @@ from ruamel.yaml.scalarstring import PreservedScalarString
 
 from config.models import BaseConfigModel, TabbyConfigModel
 from common.utils import merge_dicts, filter_none_values, unwrap
+from common.args import convert_args_to_dict, init_argparser
 
 yaml = YAML(typ=["rt", "safe"])
 yaml.representer.add_representer(pathlib.Path, pathlib.Path.as_posix)
@@ -22,16 +23,14 @@ class TabbyConfig(TabbyConfigModel):
     # TODO: make this pydantic?
     model_defaults: dict = {}
 
-    def load(self, arguments: Optional[dict] = None):
+    def load(self):
         """Synchronously loads the global application config"""
-
-        arguments_dict = unwrap(arguments, {})
 
         # config is applied in order of items in the list
         configs = [
             self._from_file(pathlib.Path("config.yml")),
             self._from_environment(),
-            self._from_args(arguments_dict),
+            self._from_args(),
         ]
 
         # Remove None (aka unset) values from the configs and merge them together
@@ -78,9 +77,13 @@ class TabbyConfig(TabbyConfigModel):
 
         return unwrap(cfg, {})
 
-    def _from_args(self, args: dict):
+    def _from_args(self):
         """loads config from the provided arguments"""
         config = {}
+
+        parser = init_argparser()
+        # FIXME: make parser stricter or disable with external ASGI server
+        args = convert_args_to_dict(parser.parse_known_args(), parser)
 
         config_override = args.get("config", {}).get("config", None)
         if config_override:
