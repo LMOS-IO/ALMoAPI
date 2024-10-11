@@ -55,7 +55,7 @@ Enable an auth provider of your choice in the config file (defaults to simple)
 
 Add a new API key with `python almoapi/main.py --add-api-key true --key-permission admin`
 
-Run the API server with `python almoapi/main.py`
+Run the API server with the bundled uvicorn via `python almoapi/start.py` or use an external instance via `uvicorn --app-dir .\almoapi\ main:app`. Note that command line args might not work with an external ASGI server.
 
 ## Features
 

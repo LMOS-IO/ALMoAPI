@@ -1,15 +1,12 @@
-import uvicorn
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from loguru import logger
 
-from common.logger import UVICORN_LOG_CONFIG
 from common.networking import get_global_depends
 from endpoints.OAI import router as OAIRouter
 from endpoints.core.router import router as CoreRouter
 
 
-def setup_app():
+def setup_app(lifespan):
     """Includes the correct routers for startup"""
 
     app = FastAPI(
@@ -20,6 +17,7 @@ def setup_app():
             "like Postman or a frontend UI."
         ),
         dependencies=get_global_depends(),
+        lifespan=lifespan,
     )
 
     # ALlow CORS requests
@@ -44,21 +42,3 @@ def export_openapi():
 
     app = setup_app()
     return app.openapi()
-
-
-async def start_api(host: str, port: int):
-    """Isolated function to start the API server"""
-
-    # TODO: Move OAI API to a separate folder
-    display_host = host if host != "0.0.0.0" else "localhost"
-    logger.info(f"Developer documentation: http://{display_host}:{port}/redoc")
-
-    # Setup app
-    app = setup_app()
-
-    uvicornConfig = uvicorn.Config(
-        app, host=host, port=port, log_config=UVICORN_LOG_CONFIG
-    )
-    server = uvicorn.Server(uvicornConfig)
-
-    await server.serve()
