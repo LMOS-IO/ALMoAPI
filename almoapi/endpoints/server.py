@@ -6,7 +6,7 @@ from endpoints.OAI import router as OAIRouter
 from endpoints.core.router import router as CoreRouter
 
 
-def setup_app(lifespan):
+def setup_app(lifespan=None):
     """Includes the correct routers for startup"""
 
     app = FastAPI(
