@@ -82,8 +82,13 @@ class TabbyConfig(TabbyConfigModel):
         config = {}
 
         parser = init_argparser()
-        # FIXME: make parser stricter or disable with external ASGI server
-        args = convert_args_to_dict(parser.parse_known_args(), parser)
+
+        try:
+            args = convert_args_to_dict(parser.parse_args(), parser)
+        except Exception:
+            return config
+
+        print(args)
 
         config_override = args.get("config", {}).get("config", None)
         if config_override:
