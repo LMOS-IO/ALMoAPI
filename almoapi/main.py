@@ -70,6 +70,9 @@ async def lifespan(app: FastAPI):
 # load config
 config.load()
 
+# setup auth
+AuthManager.setup()
+
 # branch to default paths if required
 if branch_to_actions():
     exit()
