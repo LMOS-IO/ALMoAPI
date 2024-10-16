@@ -7,6 +7,7 @@ class BaseSamplerRequest(BaseModel):
     """Common class for sampler parameters used in APIs."""
 
     max_tokens: Optional[int] = Field(
+        None,
         alias="max_length",
         ge=0,
         description="Maximum number of tokens to generate.",
