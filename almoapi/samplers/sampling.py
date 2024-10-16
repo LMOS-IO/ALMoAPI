@@ -6,8 +6,7 @@ from typing import Dict, List, Optional
 class BaseSamplerRequest(BaseModel):
     """Common class for sampler parameters used in APIs."""
 
-    max_tokens: int = Field(
-        None,
+    max_tokens: Optional[int] = Field(
         alias="max_length",
         ge=0,
         description="Maximum number of tokens to generate.",
@@ -274,8 +273,8 @@ class BaseSamplerRequest(BaseModel):
         """Validates sampler parameters to be within sane ranges."""
         if self.min_temp > self.max_temp:
             raise ValueError("min_temp cannot be greater than max_temp")
-        
-        if self.max_tokens is not None and self.min_tokens > self.max_tokens:
+
+        if self.max_tokens and self.min_tokens > self.max_tokens:
             # for the case where user overrides to min > max
             raise ValueError("min_tokens cannot be greater than max_tokens")
 
